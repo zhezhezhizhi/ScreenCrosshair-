@@ -21,19 +21,26 @@ namespace CrosshairMaster
         [STAThread]
         public static void Main()
         {
-            // 1. High DPI Awareness
+            // 1. High DPI Awareness (Windows 10 1703+ Per-Monitor V2, with fallback)
             try
             {
-                Win32Helper.SetProcessDPIAware();
+                Win32Helper.SetProcessDpiAwarenessContext(new IntPtr(-4));
             }
-            catch { }
+            catch
+            {
+                try
+                {
+                    Win32Helper.SetProcessDPIAware();
+                }
+                catch { }
+            }
 
             // 2. Single instance check
             bool isNewInstance;
             _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_SingleInstance_Mutex", out isNewInstance);
             if (!isNewInstance)
             {
-                System.Windows.MessageBox.Show("ScreenCrosshair v6.7 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v6.7", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("ScreenCrosshair v6.8 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -111,7 +118,7 @@ namespace CrosshairMaster
         private static void SetupTrayIcon(Application app, AppConfig config, OverlayWindow overlay, MainWindow mainWin)
         {
             _trayIcon = new NotifyIcon();
-            _trayIcon.Text = "ScreenCrosshair v6.7 (按F10调出面板)";
+            _trayIcon.Text = "ScreenCrosshair v6.8 (按F10调出面板)";
 
             // Extract icon from embedded application icon or fallback
             try

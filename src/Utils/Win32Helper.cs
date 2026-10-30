@@ -26,6 +26,25 @@ namespace CrosshairMaster.Utils
         public const int SM_CXSCREEN = 0;
         public const int SM_CYSCREEN = 1;
 
+        public const int HORZRES = 8;
+        public const int VERTRES = 10;
+        public const int LOGPIXELSX = 88;
+        public const int LOGPIXELSY = 90;
+        public const int DESKTOPVERTRES = 117;
+        public const int DESKTOPHORZRES = 118;
+
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+        [DllImport("gdi32.dll")]
+        public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
         [DllImport("user32.dll")]
         public static extern int GetSystemMetrics(int nIndex);
 
@@ -88,6 +107,83 @@ namespace CrosshairMaster.Utils
         {
             SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, 
                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        }
+
+        public static ScreenMetrics GetPrimaryScreenMetrics()
+        {
+            ScreenMetrics m = new ScreenMetrics();
+            try
+            {
+                IntPtr hdc = GetDC(IntPtr.Zero);
+                if (hdc != IntPtr.Zero)
+                {
+                    m.PhysicalWidth = GetDeviceCaps(hdc, DESKTOPHORZRES);
+                    m.PhysicalHeight = GetDeviceCaps(hdc, DESKTOPVERTRES);
+                    int logX = GetDeviceCaps(hdc, LOGPIXELSX);
+                    ReleaseDC(IntPtr.Zero, hdc);
+
+                    if (logX > 0)
+                    {
+                        m.DpiScale = logX / 96.0;
+                        m.DpiPercent = (int)Math.Round(m.DpiScale * 100);
+                    }
+                    else
+                    {
+                        m.DpiScale = 1.0;
+                        m.DpiPercent = 100;
+                    }
+                }
+            }
+            catch { }
+
+            if (m.PhysicalWidth <= 0 || m.PhysicalHeight <= 0)
+            {
+                try
+                {
+                    m.PhysicalWidth = GetSystemMetrics(SM_CXSCREEN);
+                    m.PhysicalHeight = GetSystemMetrics(SM_CYSCREEN);
+                }
+                catch { }
+            }
+
+            if (m.PhysicalWidth <= 0) m.PhysicalWidth = 1920;
+            if (m.PhysicalHeight <= 0) m.PhysicalHeight = 1080;
+
+            if (m.DpiScale <= 0.1)
+            {
+                m.DpiScale = 1.0;
+                m.DpiPercent = 100;
+            }
+
+            m.DipWidth = m.PhysicalWidth / m.DpiScale;
+            m.DipHeight = m.PhysicalHeight / m.DpiScale;
+
+            return m;
+        }
+    }
+
+    public class ScreenMetrics
+    {
+        public int PhysicalWidth { get; set; }
+        public int PhysicalHeight { get; set; }
+        public double DpiScale { get; set; }
+        public int DpiPercent { get; set; }
+        public double DipWidth { get; set; }
+        public double DipHeight { get; set; }
+
+        public int PhysicalCenterX { get { return PhysicalWidth / 2; } }
+        public int PhysicalCenterY { get { return PhysicalHeight / 2; } }
+        public double DipCenterX { get { return DipWidth / 2.0; } }
+        public double DipCenterY { get { return DipHeight / 2.0; } }
+
+        public override string ToString()
+        {
+            if (DpiPercent != 100)
+            {
+                return string.Format("{0}×{1} (物理) · 缩放 {2}% (逻辑 {3}×{4})", 
+                    PhysicalWidth, PhysicalHeight, DpiPercent, (int)DipWidth, (int)DipHeight);
+            }
+            return string.Format("{0}×{1}", PhysicalWidth, PhysicalHeight);
         }
     }
 }

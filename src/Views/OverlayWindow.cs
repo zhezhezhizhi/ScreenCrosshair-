@@ -23,9 +23,10 @@ namespace CrosshairMaster.Views
 
         // Screen Resolution & Auto Centering State (⭐ USER REQUEST: 分辨率变动时自动刷新软件)
         public bool AutoRefreshEnabled { get; set; }
-        public event Action<double, double> OnResolutionChanged;
-        private double _lastTrackedWidth = 0;
-        private double _lastTrackedHeight = 0;
+        public event Action<ScreenMetrics> OnResolutionChanged;
+        private int _lastTrackedPhysicalW = 0;
+        private int _lastTrackedPhysicalH = 0;
+        private int _lastTrackedDpiPercent = 0;
         private bool _isHookRegistered = false;
         private DispatcherTimer _settleTimer1;
         private DispatcherTimer _settleTimer2;
@@ -61,10 +62,11 @@ namespace CrosshairMaster.Views
             SnapsToDevicePixels = false;
             UseLayoutRounding = false;
 
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
             Left = 0;
             Top = 0;
-            Width = SystemParameters.PrimaryScreenWidth;
-            Height = SystemParameters.PrimaryScreenHeight;
+            Width = m.DipWidth;
+            Height = m.DipHeight;
 
             Grid root = new Grid();
 
@@ -117,8 +119,21 @@ namespace CrosshairMaster.Views
             }
             catch { }
 
-            _lastTrackedWidth = SystemParameters.PrimaryScreenWidth;
-            _lastTrackedHeight = SystemParameters.PrimaryScreenHeight;
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            _lastTrackedPhysicalW = m.PhysicalWidth;
+            _lastTrackedPhysicalH = m.PhysicalHeight;
+            _lastTrackedDpiPercent = m.DpiPercent;
+
+            Left = 0;
+            Top = 0;
+            Width = m.DipWidth;
+            Height = m.DipHeight;
+
+            if (hWnd != IntPtr.Zero)
+            {
+                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
+                    Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
+            }
 
             _topmostTimer = new DispatcherTimer();
             _topmostTimer.Interval = TimeSpan.FromSeconds(1.5);
@@ -170,17 +185,16 @@ namespace CrosshairMaster.Views
         {
             if (!AutoRefreshEnabled) return;
 
-            double currentW = SystemParameters.PrimaryScreenWidth;
-            double currentH = SystemParameters.PrimaryScreenHeight;
-
-            if (_lastTrackedWidth <= 0 || _lastTrackedHeight <= 0)
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            if (_lastTrackedPhysicalW <= 0 || _lastTrackedPhysicalH <= 0)
             {
-                _lastTrackedWidth = currentW;
-                _lastTrackedHeight = currentH;
+                _lastTrackedPhysicalW = m.PhysicalWidth;
+                _lastTrackedPhysicalH = m.PhysicalHeight;
+                _lastTrackedDpiPercent = m.DpiPercent;
                 return;
             }
 
-            if (Math.Abs(currentW - _lastTrackedWidth) > 1 || Math.Abs(currentH - _lastTrackedHeight) > 1)
+            if (m.PhysicalWidth != _lastTrackedPhysicalW || m.PhysicalHeight != _lastTrackedPhysicalH || m.DpiPercent != _lastTrackedDpiPercent)
             {
                 TriggerResolutionRefreshSequence();
             }
@@ -220,31 +234,20 @@ namespace CrosshairMaster.Views
 
         public void CheckAndRefreshResolution(bool triggerEvent = true)
         {
-            double newW = SystemParameters.PrimaryScreenWidth;
-            double newH = SystemParameters.PrimaryScreenHeight;
-
-            if (newW <= 0 || newH <= 0)
-            {
-                var screen = System.Windows.Forms.Screen.PrimaryScreen;
-                if (screen != null)
-                {
-                    newW = screen.Bounds.Width;
-                    newH = screen.Bounds.Height;
-                }
-            }
-
-            _lastTrackedWidth = newW;
-            _lastTrackedHeight = newH;
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            _lastTrackedPhysicalW = m.PhysicalWidth;
+            _lastTrackedPhysicalH = m.PhysicalHeight;
+            _lastTrackedDpiPercent = m.DpiPercent;
 
             Left = 0;
             Top = 0;
-            Width = newW;
-            Height = newH;
+            Width = m.DipWidth;
+            Height = m.DipHeight;
 
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, (int)newW, (int)newH,
+                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
                     Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
             }
 
@@ -253,7 +256,7 @@ namespace CrosshairMaster.Views
 
             if (triggerEvent && OnResolutionChanged != null)
             {
-                OnResolutionChanged(newW, newH);
+                OnResolutionChanged(m);
             }
         }
 
@@ -373,10 +376,9 @@ namespace CrosshairMaster.Views
         {
             if (!_isOverlayActive || _canvas == null) return;
 
-            double w = (Width > 0 && !double.IsNaN(Width)) ? Width : (ActualWidth > 0 ? ActualWidth : SystemParameters.PrimaryScreenWidth);
-            double h = (Height > 0 && !double.IsNaN(Height)) ? Height : (ActualHeight > 0 ? ActualHeight : SystemParameters.PrimaryScreenHeight);
-            double cx = w / 2.0;
-            double cy = h / 2.0;
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            double cx = m.DipCenterX;
+            double cy = m.DipCenterY;
 
             bool isLDown = (Win32Helper.GetAsyncKeyState(Win32Helper.VK_LBUTTON) & 0x8000) != 0;
             bool isRDown = (Win32Helper.GetAsyncKeyState(Win32Helper.VK_RBUTTON) & 0x8000) != 0;

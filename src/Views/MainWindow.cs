@@ -191,7 +191,7 @@ namespace CrosshairMaster.Views
             _overlayWindow = overlay;
             _hotKeyManager = hotkeys;
 
-            Title = "ScreenCrosshair v6.7";
+            Title = "ScreenCrosshair v6.8";
             Width = 1200;
             Height = 800;
             MinWidth = 1060;
@@ -236,15 +236,16 @@ namespace CrosshairMaster.Views
             UpdateWindowBackground();
             UpdatePreviewBackground();
             UpdateAllViews();
+            UpdateResolutionUI();
 
             // ⭐ USER REQUEST: 屏幕分辨率变动时自动刷新软件与准星居中
             if (_overlayWindow != null)
             {
-                _overlayWindow.OnResolutionChanged += (w, h) =>
+                _overlayWindow.OnResolutionChanged += (metrics) =>
                 {
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        UpdateResolutionUI(w, h);
+                        UpdateResolutionUI(metrics);
                         UpdatePreview();
                     }), DispatcherPriority.Render);
                 };
@@ -252,27 +253,62 @@ namespace CrosshairMaster.Views
         }
 
         // ======================= ⭐ Screen Resolution & Centering Methods =======================
-        public void UpdateResolutionUI(double w, double h)
+        public void UpdateResolutionUI(ScreenMetrics m = null)
         {
-            string info = string.Format("🖥️ 屏幕: {0}×{1} (0,0 居中点: {2},{3})", (int)w, (int)h, (int)(w / 2), (int)(h / 2));
+            if (m == null) m = Win32Helper.GetPrimaryScreenMetrics();
+
+            string resDisplay;
+            if (m.DpiPercent != 100)
+            {
+                resDisplay = string.Format("🖥️ 屏幕: {0}×{1} (物理) · {2}% 缩放 (中心点: {3}, {4})",
+                    m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent, m.PhysicalCenterX, m.PhysicalCenterY);
+            }
+            else
+            {
+                resDisplay = string.Format("🖥️ 屏幕: {0}×{1} (0,0 居中点: {2}, {3})",
+                    m.PhysicalWidth, m.PhysicalHeight, m.PhysicalCenterX, m.PhysicalCenterY);
+            }
+
             if (_lblScreenResInfo != null)
             {
-                _lblScreenResInfo.Text = info;
+                _lblScreenResInfo.Text = resDisplay;
             }
             if (_lblSettingsResInfo != null)
             {
-                _lblSettingsResInfo.Text = string.Format("当前屏幕主分辨率: {0} × {1} (绝对中心点: X={2}, Y={3} px)", (int)w, (int)h, (int)(w / 2), (int)(h / 2));
+                if (m.DpiPercent != 100)
+                {
+                    _lblSettingsResInfo.Text = string.Format(
+                        "物理屏幕分辨率: {0} × {1}  |  Windows 系统缩放: {2}%\n绝对物理中心点: X = {3} px, Y = {4} px  (工作区视口: {5} × {6})",
+                        m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent, m.PhysicalCenterX, m.PhysicalCenterY, (int)m.DipWidth, (int)m.DipHeight);
+                }
+                else
+                {
+                    _lblSettingsResInfo.Text = string.Format(
+                        "物理屏幕分辨率: {0} × {1}  |  绝对物理中心点: X = {2} px, Y = {3} px",
+                        m.PhysicalWidth, m.PhysicalHeight, m.PhysicalCenterX, m.PhysicalCenterY);
+                }
             }
             if (_txtBottomStatus != null)
             {
-                _txtBottomStatus.Text = string.Format("ScreenCrosshair v6.7 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi", (int)w, (int)h);
+                if (m.DpiPercent != 100)
+                {
+                    _txtBottomStatus.Text = string.Format(
+                        "ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                        m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent);
+                }
+                else
+                {
+                    _txtBottomStatus.Text = string.Format(
+                        "ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                        m.PhysicalWidth, m.PhysicalHeight);
+                }
             }
 
             // Keep MainWindow within visible bounds if resolution shrank
-            if (Left + Width > w || Top + Height > h)
+            if (Left + Width > m.DipWidth || Top + Height > m.DipHeight)
             {
-                if (Left + Width > w) Left = Math.Max(0, (w - Width) / 2);
-                if (Top + Height > h) Top = Math.Max(0, (h - Height) / 2);
+                if (Left + Width > m.DipWidth) Left = Math.Max(0, (m.DipWidth - Width) / 2);
+                if (Top + Height > m.DipHeight) Top = Math.Max(0, (m.DipHeight - Height) / 2);
             }
         }
 
@@ -282,18 +318,35 @@ namespace CrosshairMaster.Views
             {
                 _overlayWindow.CheckAndRefreshResolution(true);
             }
-            double w = SystemParameters.PrimaryScreenWidth;
-            double h = SystemParameters.PrimaryScreenHeight;
-            UpdateResolutionUI(w, h);
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            UpdateResolutionUI(m);
             UpdatePreview();
 
             if (isManual)
             {
-                MessageBox.Show(
-                    string.Format("屏幕分辨率检测与准星居中刷新成功！\n\n当前检测到屏幕分辨率：{0} × {1}\n屏幕绝对正中心：X = {2} px, Y = {3} px\n\n准星已重新对齐屏幕绝对中心！",
-                        (int)w, (int)h, (int)(w / 2), (int)(h / 2)),
-                    "分辨率检测成功 - ScreenCrosshair v6.7",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                string msg;
+                if (m.DpiPercent != 100)
+                {
+                    msg = string.Format(
+                        "屏幕物理分辨率检测与准星居中刷新成功！\n\n" +
+                        "【真实物理分辨率】：{0} × {1}\n" +
+                        "【Windows 显示缩放】：{2}%\n" +
+                        "【屏幕物理正中心】：X = {3} px, Y = {4} px\n" +
+                        "【应用工作区视口】：{5} × {6}\n\n" +
+                        "✅ 全局准星视口已 100% 对齐并锁定至物理屏幕正中心！",
+                        m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent, m.PhysicalCenterX, m.PhysicalCenterY, (int)m.DipWidth, (int)m.DipHeight);
+                }
+                else
+                {
+                    msg = string.Format(
+                        "屏幕物理分辨率检测与准星居中刷新成功！\n\n" +
+                        "【当前屏幕物理分辨率】：{0} × {1}\n" +
+                        "【屏幕绝对正中心】：X = {2} px, Y = {3} px\n\n" +
+                        "✅ 全局准星视口已 100% 对齐并锁定至物理屏幕正中心！",
+                        m.PhysicalWidth, m.PhysicalHeight, m.PhysicalCenterX, m.PhysicalCenterY);
+                }
+
+                MessageBox.Show(msg, "分辨率检测成功 - ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -701,7 +754,7 @@ namespace CrosshairMaster.Views
             };
             TextBlock txtVer = new TextBlock
             {
-                Text = "v6.7",
+                Text = "v6.8",
                 Foreground = _themeAccentBrush,
                 FontSize = 11,
                 FontWeight = FontWeights.Bold
@@ -805,10 +858,14 @@ namespace CrosshairMaster.Views
             badgeFree.Child = txtFree;
             botLeftStack.Children.Add(badgeFree);
 
+            ScreenMetrics initMetrics = Win32Helper.GetPrimaryScreenMetrics();
             _txtBottomStatus = new TextBlock
             {
-                Text = string.Format("ScreenCrosshair v6.7 · 全局准星引擎已就绪 · 屏幕: {0}×{1} · by zhezhi",
-                    (int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight),
+                Text = initMetrics.DpiPercent != 100
+                    ? string.Format("ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent)
+                    : string.Format("ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight),
                 Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 190)),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 11.5,
@@ -823,7 +880,7 @@ namespace CrosshairMaster.Views
             {
                 SaveColumnRatios();
                 _config.Save();
-                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v6.7", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             Button btnQuit = CreateButton("退出程序", 80, 28, NeutralBtnColor);
             btnQuit.Margin = new Thickness(8, 0, 0, 0);
@@ -1421,11 +1478,14 @@ namespace CrosshairMaster.Views
             resGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             resGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+            ScreenMetrics initMetrics = Win32Helper.GetPrimaryScreenMetrics();
             _lblScreenResInfo = new TextBlock
             {
-                Text = string.Format("🖥️ 屏幕: {0}×{1} (0,0 居中点: {2},{3})",
-                    (int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight,
-                    (int)(SystemParameters.PrimaryScreenWidth / 2), (int)(SystemParameters.PrimaryScreenHeight / 2)),
+                Text = initMetrics.DpiPercent != 100
+                    ? string.Format("🖥️ 屏幕: {0}×{1} (物理) · {2}% 缩放 (中心点: {3}, {4})",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY)
+                    : string.Format("🖥️ 屏幕: {0}×{1} (0,0 居中点: {2}, {3})",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY),
                 Foreground = _themeSubTextBrush ?? Brushes.White,
                 FontSize = 10.5,
                 VerticalAlignment = VerticalAlignment.Center
@@ -2017,11 +2077,14 @@ namespace CrosshairMaster.Views
         {
             StackPanel p = new StackPanel();
 
+            ScreenMetrics initMetrics = Win32Helper.GetPrimaryScreenMetrics();
             _lblSettingsResInfo = new TextBlock
             {
-                Text = string.Format("当前屏幕主分辨率: {0} × {1} (绝对中心点: X={2}, Y={3} px)",
-                    (int)SystemParameters.PrimaryScreenWidth, (int)SystemParameters.PrimaryScreenHeight,
-                    (int)(SystemParameters.PrimaryScreenWidth / 2), (int)(SystemParameters.PrimaryScreenHeight / 2)),
+                Text = initMetrics.DpiPercent != 100
+                    ? string.Format("物理屏幕分辨率: {0} × {1}  |  Windows 系统缩放: {2}%\n绝对物理中心点: X = {3} px, Y = {4} px  (工作区视口: {5} × {6})",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY, (int)initMetrics.DipWidth, (int)initMetrics.DipHeight)
+                    : string.Format("物理屏幕分辨率: {0} × {1}  |  绝对物理中心点: X = {2} px, Y = {3} px",
+                        initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY),
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 12,
@@ -2586,7 +2649,7 @@ namespace CrosshairMaster.Views
             btnSaveColors.Click += (s, e) =>
             {
                 _config.Save();
-                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v6.7", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             bottomBtns.Children.Add(btnSaveColors);
 
@@ -3497,7 +3560,7 @@ namespace CrosshairMaster.Views
         private void RenameGroupLayer(CrosshairLayer layer)
         {
             if (layer == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v6.7", layer.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v6.8", layer.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 layer.Name = newName.Trim();
@@ -3510,7 +3573,7 @@ namespace CrosshairMaster.Views
         {
             CrosshairGroup g = new CrosshairGroup();
             string defName = string.Format("【方案组 #{0}】", _config.Groups.Count + 1);
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v6.7", defName);
+            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v6.8", defName);
             g.Name = (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(input.Trim())) ? input.Trim() : defName;
             _config.Groups.Add(g);
             _selectedGroup = g;
@@ -3521,7 +3584,7 @@ namespace CrosshairMaster.Views
         private void RenameCurrentGroup()
         {
             if (_selectedGroup == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v6.7", _selectedGroup.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v6.8", _selectedGroup.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 _selectedGroup.Name = newName.Trim();
@@ -3702,7 +3765,7 @@ namespace CrosshairMaster.Views
                     {
                         string customName = Microsoft.VisualBasic.Interaction.InputBox(
                             string.Format("请输入保存至方案组【{0}】的准星名称:", _selectedGroup.Name),
-                            "存入方案组 - 自定义名称 (v6.7)",
+                            "存入方案组 - 自定义名称 (v6.8)",
                             layer.Name);
                         if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(customName.Trim()))
                         {
@@ -3714,7 +3777,7 @@ namespace CrosshairMaster.Views
                         _selectedGroup.Layers.Add(savedLayer);
                         RefreshGroupList();
                         _config.Save();
-                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v6.7", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 };
 

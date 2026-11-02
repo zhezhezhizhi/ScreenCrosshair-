@@ -191,7 +191,7 @@ namespace CrosshairMaster.Views
             _overlayWindow = overlay;
             _hotKeyManager = hotkeys;
 
-            Title = "ScreenCrosshair v6.8";
+            Title = "ScreenCrosshair v6.9";
             Width = 1200;
             Height = 800;
             MinWidth = 1060;
@@ -293,13 +293,13 @@ namespace CrosshairMaster.Views
                 if (m.DpiPercent != 100)
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                        "ScreenCrosshair v6.9 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
                         m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent);
                 }
                 else
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                        "ScreenCrosshair v6.9 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
                         m.PhysicalWidth, m.PhysicalHeight);
                 }
             }
@@ -346,7 +346,7 @@ namespace CrosshairMaster.Views
                         m.PhysicalWidth, m.PhysicalHeight, m.PhysicalCenterX, m.PhysicalCenterY);
                 }
 
-                MessageBox.Show(msg, "分辨率检测成功 - ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(msg, "分辨率检测成功 - ScreenCrosshair v6.9", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -754,7 +754,7 @@ namespace CrosshairMaster.Views
             };
             TextBlock txtVer = new TextBlock
             {
-                Text = "v6.8",
+                Text = "v6.9",
                 Foreground = _themeAccentBrush,
                 FontSize = 11,
                 FontWeight = FontWeights.Bold
@@ -862,9 +862,9 @@ namespace CrosshairMaster.Views
             _txtBottomStatus = new TextBlock
             {
                 Text = initMetrics.DpiPercent != 100
-                    ? string.Format("ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                    ? string.Format("ScreenCrosshair v6.9 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent)
-                    : string.Format("ScreenCrosshair v6.8 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                    : string.Format("ScreenCrosshair v6.9 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight),
                 Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 190)),
                 FontWeight = FontWeights.SemiBold,
@@ -880,7 +880,7 @@ namespace CrosshairMaster.Views
             {
                 SaveColumnRatios();
                 _config.Save();
-                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v6.9", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             Button btnQuit = CreateButton("退出程序", 80, 28, NeutralBtnColor);
             btnQuit.Margin = new Thickness(8, 0, 0, 0);
@@ -2649,7 +2649,7 @@ namespace CrosshairMaster.Views
             btnSaveColors.Click += (s, e) =>
             {
                 _config.Save();
-                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v6.9", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             bottomBtns.Children.Add(btnSaveColors);
 
@@ -3560,7 +3560,7 @@ namespace CrosshairMaster.Views
         private void RenameGroupLayer(CrosshairLayer layer)
         {
             if (layer == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v6.8", layer.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v6.9", layer.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 layer.Name = newName.Trim();
@@ -3573,7 +3573,7 @@ namespace CrosshairMaster.Views
         {
             CrosshairGroup g = new CrosshairGroup();
             string defName = string.Format("【方案组 #{0}】", _config.Groups.Count + 1);
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v6.8", defName);
+            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v6.9", defName);
             g.Name = (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(input.Trim())) ? input.Trim() : defName;
             _config.Groups.Add(g);
             _selectedGroup = g;
@@ -3584,7 +3584,7 @@ namespace CrosshairMaster.Views
         private void RenameCurrentGroup()
         {
             if (_selectedGroup == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v6.8", _selectedGroup.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v6.9", _selectedGroup.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 _selectedGroup.Name = newName.Trim();
@@ -3765,7 +3765,7 @@ namespace CrosshairMaster.Views
                     {
                         string customName = Microsoft.VisualBasic.Interaction.InputBox(
                             string.Format("请输入保存至方案组【{0}】的准星名称:", _selectedGroup.Name),
-                            "存入方案组 - 自定义名称 (v6.8)",
+                            "存入方案组 - 自定义名称 (v6.9)",
                             layer.Name);
                         if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(customName.Trim()))
                         {
@@ -3777,7 +3777,7 @@ namespace CrosshairMaster.Views
                         _selectedGroup.Layers.Add(savedLayer);
                         RefreshGroupList();
                         _config.Save();
-                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v6.8", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v6.9", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 };
 

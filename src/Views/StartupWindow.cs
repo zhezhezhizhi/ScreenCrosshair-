@@ -132,7 +132,7 @@ namespace CrosshairMaster.Views
             // 2. Title Text
             _txtTitle = new TextBlock
             {
-                Text = "SCREEN CROSSHAIR  v6.8",
+                Text = "SCREEN CROSSHAIR  v6.9",
                 FontWeight = FontWeights.Bold,
                 FontSize = 18,
                 Foreground = new SolidColorBrush(Color.FromRgb(10, 132, 255)),

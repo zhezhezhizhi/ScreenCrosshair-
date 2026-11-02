@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Windows;
 
 namespace CrosshairMaster.Utils
 {
@@ -112,51 +113,71 @@ namespace CrosshairMaster.Utils
         public static ScreenMetrics GetPrimaryScreenMetrics()
         {
             ScreenMetrics m = new ScreenMetrics();
+            int physW = 0;
+            int physH = 0;
+
             try
             {
                 IntPtr hdc = GetDC(IntPtr.Zero);
                 if (hdc != IntPtr.Zero)
                 {
-                    m.PhysicalWidth = GetDeviceCaps(hdc, DESKTOPHORZRES);
-                    m.PhysicalHeight = GetDeviceCaps(hdc, DESKTOPVERTRES);
-                    int logX = GetDeviceCaps(hdc, LOGPIXELSX);
+                    physW = GetDeviceCaps(hdc, DESKTOPHORZRES);
+                    physH = GetDeviceCaps(hdc, DESKTOPVERTRES);
                     ReleaseDC(IntPtr.Zero, hdc);
-
-                    if (logX > 0)
-                    {
-                        m.DpiScale = logX / 96.0;
-                        m.DpiPercent = (int)Math.Round(m.DpiScale * 100);
-                    }
-                    else
-                    {
-                        m.DpiScale = 1.0;
-                        m.DpiPercent = 100;
-                    }
                 }
             }
             catch { }
 
-            if (m.PhysicalWidth <= 0 || m.PhysicalHeight <= 0)
+            if (physW <= 0 || physH <= 0)
             {
                 try
                 {
-                    m.PhysicalWidth = GetSystemMetrics(SM_CXSCREEN);
-                    m.PhysicalHeight = GetSystemMetrics(SM_CYSCREEN);
+                    physW = GetSystemMetrics(SM_CXSCREEN);
+                    physH = GetSystemMetrics(SM_CYSCREEN);
                 }
                 catch { }
             }
 
-            if (m.PhysicalWidth <= 0) m.PhysicalWidth = 1920;
-            if (m.PhysicalHeight <= 0) m.PhysicalHeight = 1080;
+            if (physW <= 0) physW = 1920;
+            if (physH <= 0) physH = 1080;
 
-            if (m.DpiScale <= 0.1)
+            m.PhysicalWidth = physW;
+            m.PhysicalHeight = physH;
+
+            // In WPF, SystemParameters.PrimaryScreenWidth / PrimaryScreenHeight gives logical DIP bounds.
+            double dipW = 0;
+            double dipH = 0;
+            try
             {
-                m.DpiScale = 1.0;
-                m.DpiPercent = 100;
+                dipW = SystemParameters.PrimaryScreenWidth;
+                dipH = SystemParameters.PrimaryScreenHeight;
+            }
+            catch { }
+
+            if (dipW <= 0 || dipH <= 0)
+            {
+                dipW = physW;
+                dipH = physH;
             }
 
-            m.DipWidth = m.PhysicalWidth / m.DpiScale;
-            m.DipHeight = m.PhysicalHeight / m.DpiScale;
+            m.DipWidth = dipW;
+            m.DipHeight = dipH;
+
+            // Calculate dynamic scale between physical pixels and WPF DIP coordinates
+            double scale = (dipW > 0 && physW > 0) ? ((double)physW / dipW) : 1.0;
+            int percent = (int)Math.Round(scale * 100.0);
+
+            // Handle slight rounding variations around 100% (e.g. 99% or 101%)
+            if (Math.Abs(percent - 100) <= 2)
+            {
+                percent = 100;
+                scale = 1.0;
+                m.DipWidth = physW;
+                m.DipHeight = physH;
+            }
+
+            m.DpiScale = scale;
+            m.DpiPercent = percent;
 
             return m;
         }

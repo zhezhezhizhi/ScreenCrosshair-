@@ -131,8 +131,7 @@ namespace CrosshairMaster.Views
 
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
-                    Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
+                Win32Helper.ForceTopMost(hWnd);
             }
 
             _topmostTimer = new DispatcherTimer();
@@ -247,8 +246,7 @@ namespace CrosshairMaster.Views
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
-                    Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
+                Win32Helper.ForceTopMost(hWnd);
             }
 
             UpdateLayout();
@@ -377,8 +375,10 @@ namespace CrosshairMaster.Views
             if (!_isOverlayActive || _canvas == null) return;
 
             ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
-            double cx = m.DipCenterX;
-            double cy = m.DipCenterY;
+            double w = ActualWidth > 0 ? ActualWidth : (Width > 0 ? Width : m.DipWidth);
+            double h = ActualHeight > 0 ? ActualHeight : (Height > 0 ? Height : m.DipHeight);
+            double cx = w / 2.0;
+            double cy = h / 2.0;
 
             bool isLDown = (Win32Helper.GetAsyncKeyState(Win32Helper.VK_LBUTTON) & 0x8000) != 0;
             bool isRDown = (Win32Helper.GetAsyncKeyState(Win32Helper.VK_RBUTTON) & 0x8000) != 0;

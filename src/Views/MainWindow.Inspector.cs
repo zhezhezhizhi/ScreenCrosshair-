@@ -153,7 +153,7 @@ namespace CrosshairMaster.Views
                         _selectedGroup.Layers.Add(savedLayer);
                         RefreshGroupList();
                         _config.Save();
-                        MessageBox.Show(string.Format("已保存至方案「{0}」", _selectedGroup.Name), "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(string.Format("已保存至方案「{0}」", _selectedGroup.Name), "ScreenCrosshair v7.3", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 };
 

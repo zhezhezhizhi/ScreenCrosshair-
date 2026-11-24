@@ -30,10 +30,10 @@ namespace CrosshairMaster
 
             // 2. Single instance check
             bool isNewInstance;
-            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v72_SingleInstance_Mutex", out isNewInstance);
+            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v73_SingleInstance_Mutex", out isNewInstance);
             if (!isNewInstance)
             {
-                System.Windows.MessageBox.Show("ScreenCrosshair 已在运行中。\n快捷键：F10 呼出面板，F8 开关准星。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("ScreenCrosshair 已在运行中。\n快捷键：F10 呼出面板，F8 开关准星。", "ScreenCrosshair v7.3", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 

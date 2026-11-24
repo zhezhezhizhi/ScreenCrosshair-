@@ -191,7 +191,7 @@ namespace CrosshairMaster.Views
             _overlayWindow = overlay;
             _hotKeyManager = hotkeys;
 
-            Title = "ScreenCrosshair v7.1";
+            Title = "ScreenCrosshair v7.2";
             Width = 1200;
             Height = 800;
             MinWidth = 1060;
@@ -293,13 +293,13 @@ namespace CrosshairMaster.Views
                 if (m.DpiPercent != 100)
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v7.1 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                        "ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
                         m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent);
                 }
                 else
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v7.1 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                        "ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
                         m.PhysicalWidth, m.PhysicalHeight);
                 }
             }
@@ -318,7 +318,7 @@ namespace CrosshairMaster.Views
             {
                 _overlayWindow.CheckAndRefreshResolution(true);
             }
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(_config != null ? _config.TargetMonitorIndex : 0);
             UpdateResolutionUI(m);
             UpdatePreview();
 
@@ -346,7 +346,7 @@ namespace CrosshairMaster.Views
                         m.PhysicalWidth, m.PhysicalHeight, m.PhysicalCenterX, m.PhysicalCenterY);
                 }
 
-                MessageBox.Show(msg, "分辨率检测成功 - ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(msg, "分辨率检测成功 - ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -498,7 +498,7 @@ namespace CrosshairMaster.Views
             };
             TextBlock txtVer = new TextBlock
             {
-                Text = "v7.1",
+                Text = "v7.2",
                 Foreground = _themeAccentBrush,
                 FontSize = 11,
                 FontWeight = FontWeights.Bold
@@ -606,9 +606,9 @@ namespace CrosshairMaster.Views
             _txtBottomStatus = new TextBlock
             {
                 Text = initMetrics.DpiPercent != 100
-                    ? string.Format("ScreenCrosshair v7.1 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                    ? string.Format("ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent)
-                    : string.Format("ScreenCrosshair v7.1 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                    : string.Format("ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight),
                 Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 190)),
                 FontWeight = FontWeights.SemiBold,
@@ -624,7 +624,7 @@ namespace CrosshairMaster.Views
             {
                 SaveColumnRatios();
                 _config.Save();
-                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             Button btnQuit = CreateButton("退出程序", 80, 28, NeutralBtnColor);
             btnQuit.Margin = new Thickness(8, 0, 0, 0);

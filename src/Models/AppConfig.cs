@@ -73,6 +73,10 @@ namespace CrosshairMaster.Models
         [DataMember]
         public bool AutoRefreshOnResolutionChange { get; set; }
 
+        // Multi-monitor Target Monitor Index (0 = Primary, 1 = Secondary, etc.)
+        [DataMember]
+        public int TargetMonitorIndex { get; set; }
+
         // Hotkeys
         [DataMember]
         public int ToggleHotKeyVK { get; set; } // default 0x77 (VK_F8)
@@ -286,11 +290,11 @@ namespace CrosshairMaster.Models
                 if (cfg.ColumnCenterRatio <= 50) cfg.ColumnCenterRatio = 380.0;
                 if (cfg.ColumnRightRatio <= 50) cfg.ColumnRightRatio = 480.0;
 
-                if (!json.Contains("\"PreviewOnlySelected\""))
+                if (!System.Text.RegularExpressions.Regex.IsMatch(json, "\"PreviewOnlySelected\"\\s*:"))
                 {
                     cfg.PreviewOnlySelected = true;
                 }
-                if (!json.Contains("\"AutoRefreshOnResolutionChange\""))
+                if (!System.Text.RegularExpressions.Regex.IsMatch(json, "\"AutoRefreshOnResolutionChange\"\\s*:"))
                 {
                     cfg.AutoRefreshOnResolutionChange = true;
                 }
@@ -302,6 +306,9 @@ namespace CrosshairMaster.Models
         public static AppConfig Load()
         {
             string path = GetConfigPath();
+            string bakPath = path + ".bak";
+
+            // 1. Try loading primary config.json
             if (File.Exists(path))
             {
                 try
@@ -316,9 +323,36 @@ namespace CrosshairMaster.Models
                         }
                     }
                 }
-                catch
+                catch { }
+            }
+
+            // 2. Try loading backup config.json.bak if primary failed/corrupted
+            if (File.Exists(bakPath))
+            {
+                try
                 {
+                    string bakJson = File.ReadAllText(bakPath);
+                    if (!string.IsNullOrEmpty(bakJson) && !string.IsNullOrEmpty(bakJson.Trim()))
+                    {
+                        AppConfig cfg = FromJson(bakJson);
+                        if (cfg != null && cfg.Layers != null && cfg.Layers.Count > 0)
+                        {
+                            cfg.Save();
+                            return cfg;
+                        }
+                    }
                 }
+                catch { }
+            }
+
+            // 3. Fallback to default config without destroying broken original file
+            if (File.Exists(path))
+            {
+                try
+                {
+                    File.Copy(path, path + ".corrupted." + DateTime.Now.ToString("yyyyMMdd_HHmmss"), true);
+                }
+                catch { }
             }
 
             AppConfig defaultCfg = CreateDefaultConfig();
@@ -331,12 +365,23 @@ namespace CrosshairMaster.Models
             try
             {
                 string path = GetConfigPath();
+                string tempPath = path + ".tmp";
+                string bakPath = path + ".bak";
+
                 DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AppConfig));
                 using (MemoryStream ms = new MemoryStream())
                 {
                     serializer.WriteObject(ms, this);
                     byte[] jsonBytes = ms.ToArray();
-                    File.WriteAllBytes(path, jsonBytes);
+                    File.WriteAllBytes(tempPath, jsonBytes);
+
+                    if (File.Exists(path))
+                    {
+                        try { File.Copy(path, bakPath, true); } catch { }
+                    }
+
+                    File.Copy(tempPath, path, true);
+                    try { File.Delete(tempPath); } catch { }
                 }
             }
             catch

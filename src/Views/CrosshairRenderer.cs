@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
@@ -12,7 +12,12 @@ namespace CrosshairMaster.Views
 {
     public static class CrosshairRenderer
     {
-        private static Dictionary<string, BitmapImage> _imageCache = new Dictionary<string, BitmapImage>();
+        private static Dictionary<string, KeyValuePair<DateTime, BitmapImage>> _imageCache = new Dictionary<string, KeyValuePair<DateTime, BitmapImage>>();
+
+        public static void ClearImageCache()
+        {
+            _imageCache.Clear();
+        }
 
         public static SolidColorBrush ParseBrush(string hex, double alpha)
         {
@@ -37,20 +42,25 @@ namespace CrosshairMaster.Views
         public static BitmapImage GetCachedBitmap(string path)
         {
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return null;
-            if (_imageCache.ContainsKey(path))
-            {
-                return _imageCache[path];
-            }
-
             try
             {
+                // 修复 Bug 12: 检查文件修改时间，若外部同名替换则即时重新加载
+                DateTime lastWrite = File.GetLastWriteTimeUtc(path);
+                if (_imageCache.ContainsKey(path))
+                {
+                    if (_imageCache[path].Key == lastWrite)
+                    {
+                        return _imageCache[path].Value;
+                    }
+                }
+
                 BitmapImage bi = new BitmapImage();
                 bi.BeginInit();
                 bi.UriSource = new Uri(path, UriKind.Absolute);
                 bi.CacheOption = BitmapCacheOption.OnLoad;
                 bi.EndInit();
                 bi.Freeze();
-                _imageCache[path] = bi;
+                _imageCache[path] = new KeyValuePair<DateTime, BitmapImage>(lastWrite, bi);
                 return bi;
             }
             catch
@@ -94,32 +104,10 @@ namespace CrosshairMaster.Views
             double cx = applyOffset ? (originX + layer.OffsetX * scale) : originX;
             double cy = applyOffset ? (originY + layer.OffsetY * scale) : originY;
 
-            // ⭐ Crosshair Rotation (支持任意图层 0.000° ~ 360.000° 旋转)
-            Canvas layerContainer = canvas;
-            if (Math.Abs(layer.Rotation) > 0.0001)
-            {
-                layerContainer = new Canvas();
-                layerContainer.RenderTransform = new RotateTransform(layer.Rotation, cx, cy);
-                canvas.Children.Add(layerContainer);
-            }
-
-            SolidColorBrush mainBrush = ParseBrush(layer.ColorHex, layer.Alpha);
-            SolidColorBrush outlineBrush = ParseBrush(layer.OutlineColorHex, layer.Alpha);
-            SolidColorBrush dotBrush = ParseBrush(layer.DotColorHex, layer.Alpha);
-            SolidColorBrush circleBrush = ParseBrush(layer.CircleColorHex, layer.Alpha);
-
-            double L = Math.Max(0.0, layer.Length);
-            double T = Math.Max(0.1, layer.Thickness);
-            // ⭐ Allow negative gap! (间隙数值可为负数)
-            double G = layer.Gap;
-            double O = layer.ShowOutline ? Math.Max(0.1, layer.OutlineThickness) : 0.0;
-
             string mode = layer.LineMode ?? "Both";
-            double scaledT = T * scale;
-            double scaledO = O * scale;
-            double halfT = (T / 2.0) * scale;
 
             // ================= 1. Custom Image Reticle (⭐ USER REQUEST: 支持导入图片作为准星 & 纵横比锁定) =================
+            // 修复 Bug 9: 自定义图片模式下直接挂载到主 Canvas，避免提前创建孤立空 Canvas
             if (mode == "CustomImage" || (!string.IsNullOrEmpty(layer.CustomImagePath) && mode == "Image"))
             {
                 BitmapImage img = GetCachedBitmap(layer.CustomImagePath);
@@ -154,6 +142,30 @@ namespace CrosshairMaster.Views
                 }
             }
 
+            // ⭐ Crosshair Rotation (支持任意图层 0.000° ~ 360.000° 旋转，仅矢量模式下按需创建)
+            Canvas layerContainer = canvas;
+            if (Math.Abs(layer.Rotation) > 0.0001)
+            {
+                layerContainer = new Canvas();
+                layerContainer.RenderTransform = new RotateTransform(layer.Rotation, cx, cy);
+                canvas.Children.Add(layerContainer);
+            }
+
+            SolidColorBrush mainBrush = ParseBrush(layer.ColorHex, layer.Alpha);
+            SolidColorBrush outlineBrush = ParseBrush(layer.OutlineColorHex, layer.Alpha);
+            SolidColorBrush dotBrush = ParseBrush(layer.DotColorHex, layer.Alpha);
+            SolidColorBrush circleBrush = ParseBrush(layer.CircleColorHex, layer.Alpha);
+
+            double L = Math.Max(0.0, layer.Length);
+            double T = Math.Max(0.1, layer.Thickness);
+            // ⭐ Allow negative gap! (间隙数值可为负数)
+            double G = layer.Gap;
+            double O = layer.ShowOutline ? Math.Max(0.1, layer.OutlineThickness) : 0.0;
+
+            double scaledT = T * scale;
+            double scaledO = O * scale;
+            double halfT = (T / 2.0) * scale;
+
             // ================= 2. Unified Coplanar Lines (⭐ USER REQUEST: 同一个平面几何，绝无上下堆叠/黑线切割) =================
             if (mode == "SolidHorizontal" && L > 0)
             {
@@ -178,11 +190,13 @@ namespace CrosshairMaster.Views
             }
             else if (mode == "XCross" && L > 0)
             {
-                DrawUnifiedXCross(layerContainer, cx, cy, L * scale, scaledT, scaledO, mainBrush, outlineBrush);
+                // 修复 Bug 13: XCross 支持 Gap 间隙调节
+                DrawUnifiedXCross(layerContainer, cx, cy, L * scale, G * scale, scaledT, scaledO, mainBrush, outlineBrush);
             }
             else if (mode == "Chevron" && L > 0)
             {
-                DrawChevron(layerContainer, cx, cy, L * scale, scaledT, scaledO, mainBrush, outlineBrush);
+                // 修复 Bug 13: Chevron 支持 Gap 间隙调节
+                DrawChevron(layerContainer, cx, cy, L * scale, G * scale, scaledT, scaledO, mainBrush, outlineBrush);
             }
             else
             {
@@ -425,34 +439,51 @@ namespace CrosshairMaster.Views
             canvas.Children.Add(fillPath);
         }
 
-        private static void DrawUnifiedXCross(Canvas canvas, double cx, double cy, double length, double thick, double outline, Brush mainBrush, Brush outlineBrush)
+        private static void DrawUnifiedXCross(Canvas canvas, double cx, double cy, double length, double gap, double thick, double outline, Brush mainBrush, Brush outlineBrush)
         {
             double rad = 45.0 * Math.PI / 180.0;
             double cos = Math.Cos(rad);
             double sin = Math.Sin(rad);
 
-            double x1 = cx - length * cos, y1 = cy - length * sin, x2 = cx + length * cos, y2 = cy + length * sin;
-            double x3 = cx - length * cos, y3 = cy + length * sin, x4 = cx + length * cos, y4 = cy - length * sin;
+            double g = Math.Max(0.0, gap);
+
+            // 4 个对称独立分段臂 (修复 Bug 13: 支持中心间隙调整)
+            double x1_s = cx - (g + length) * cos, y1_s = cy - (g + length) * sin;
+            double x1_e = cx - g * cos, y1_e = cy - g * sin;
+
+            double x2_s = cx + g * cos, y2_s = cy + g * sin;
+            double x2_e = cx + (g + length) * cos, y2_e = cy + (g + length) * sin;
+
+            double x3_s = cx - (g + length) * cos, y3_s = cy + (g + length) * sin;
+            double x3_e = cx - g * cos, y3_e = cy + g * sin;
+
+            double x4_s = cx + g * cos, y4_s = cy - g * sin;
+            double x4_e = cx + (g + length) * cos, y4_e = cy - (g + length) * sin;
 
             // 先统一绘制所有外描边，再统一绘制前景填充，杜绝交叉堆叠切线
             if (outline > 0 && outlineBrush != null)
             {
-                canvas.Children.Add(new Line { X1 = x1, Y1 = y1, X2 = x2, Y2 = y2, Stroke = outlineBrush, StrokeThickness = thick + outline * 2, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
-                canvas.Children.Add(new Line { X1 = x3, Y1 = y3, X2 = x4, Y2 = y4, Stroke = outlineBrush, StrokeThickness = thick + outline * 2, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+                double outThick = thick + outline * 2;
+                canvas.Children.Add(new Line { X1 = x1_s, Y1 = y1_s, X2 = x1_e, Y2 = y1_e, Stroke = outlineBrush, StrokeThickness = outThick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+                canvas.Children.Add(new Line { X1 = x2_s, Y1 = y2_s, X2 = x2_e, Y2 = y2_e, Stroke = outlineBrush, StrokeThickness = outThick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+                canvas.Children.Add(new Line { X1 = x3_s, Y1 = y3_s, X2 = x3_e, Y2 = y3_e, Stroke = outlineBrush, StrokeThickness = outThick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+                canvas.Children.Add(new Line { X1 = x4_s, Y1 = y4_s, X2 = x4_e, Y2 = y4_e, Stroke = outlineBrush, StrokeThickness = outThick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
             }
 
-            canvas.Children.Add(new Line { X1 = x1, Y1 = y1, X2 = x2, Y2 = y2, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
-            canvas.Children.Add(new Line { X1 = x3, Y1 = y3, X2 = x4, Y2 = y4, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+            canvas.Children.Add(new Line { X1 = x1_s, Y1 = y1_s, X2 = x1_e, Y2 = y1_e, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+            canvas.Children.Add(new Line { X1 = x2_s, Y1 = y2_s, X2 = x2_e, Y2 = y2_e, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+            canvas.Children.Add(new Line { X1 = x3_s, Y1 = y3_s, X2 = x3_e, Y2 = y3_e, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
+            canvas.Children.Add(new Line { X1 = x4_s, Y1 = y4_s, X2 = x4_e, Y2 = y4_e, Stroke = mainBrush, StrokeThickness = thick, StrokeStartLineCap = PenLineCap.Square, StrokeEndLineCap = PenLineCap.Square, SnapsToDevicePixels = false });
         }
 
-        private static void DrawChevron(Canvas canvas, double cx, double cy, double size, double thick, double outline, Brush mainBrush, Brush outlineBrush)
+        private static void DrawChevron(Canvas canvas, double cx, double cy, double size, double gap, double thick, double outline, Brush mainBrush, Brush outlineBrush)
         {
-            // Inverted V shape
-            Point pTop = new Point(cx, cy - size * 0.5);
-            Point pLeft = new Point(cx - size * 0.7, cy + size * 0.5);
-            Point pRight = new Point(cx + size * 0.7, cy + size * 0.5);
+            // Inverted V shape (修复 Bug 13: 顶点间隙根据 gap 调整)
+            Point pTop = new Point(cx, cy - gap);
+            Point pLeft = new Point(cx - size * 0.7, cy - gap + size);
+            Point pRight = new Point(cx + size * 0.7, cy - gap + size);
 
-            if (outline > 0)
+            if (outline > 0 && outlineBrush != null)
             {
                 Polyline outPoly = new Polyline
                 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Threading;
@@ -30,10 +30,10 @@ namespace CrosshairMaster
 
             // 2. Single instance check
             bool isNewInstance;
-            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v71_SingleInstance_Mutex", out isNewInstance);
+            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v72_SingleInstance_Mutex", out isNewInstance);
             if (!isNewInstance)
             {
-                System.Windows.MessageBox.Show("ScreenCrosshair v7.1 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("ScreenCrosshair v7.2 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -46,6 +46,7 @@ namespace CrosshairMaster
 
             // 5. Create Overlay Window
             OverlayWindow overlayWindow = new OverlayWindow();
+            overlayWindow.TargetMonitorIndex = config.TargetMonitorIndex;
             overlayWindow.AutoRefreshEnabled = config.AutoRefreshOnResolutionChange;
             overlayWindow.SetLayers(config.Layers);
             overlayWindow.SetOverlayActive(config.OverlayEnabled);
@@ -111,7 +112,7 @@ namespace CrosshairMaster
         private static void SetupTrayIcon(Application app, AppConfig config, OverlayWindow overlay, MainWindow mainWin)
         {
             _trayIcon = new NotifyIcon();
-            _trayIcon.Text = "ScreenCrosshair v7.1 (按F10调出面板)";
+            _trayIcon.Text = "ScreenCrosshair v7.2 (按F10调出面板)";
 
             // Extract icon from embedded application icon or fallback
             try
@@ -130,21 +131,34 @@ namespace CrosshairMaster
             if (_trayIcon.Icon == null)
             {
                 // Fallback dynamically generated in memory
-                Bitmap bmp = new Bitmap(32, 32);
-                using (Graphics g = Graphics.FromImage(bmp))
+                using (Bitmap bmp = new Bitmap(32, 32))
                 {
-                    g.Clear(System.Drawing.Color.Transparent);
-                    using (System.Drawing.Pen greenPen = new System.Drawing.Pen(System.Drawing.Color.Lime, 3))
+                    using (Graphics g = Graphics.FromImage(bmp))
                     {
-                        g.DrawLine(greenPen, 2, 16, 30, 16);
-                        g.DrawLine(greenPen, 16, 2, 16, 30);
+                        g.Clear(System.Drawing.Color.Transparent);
+                        using (System.Drawing.Pen greenPen = new System.Drawing.Pen(System.Drawing.Color.Lime, 3))
+                        {
+                            g.DrawLine(greenPen, 2, 16, 30, 16);
+                            g.DrawLine(greenPen, 16, 2, 16, 30);
+                        }
+                        using (System.Drawing.SolidBrush redDot = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
+                        {
+                            g.FillEllipse(redDot, 13, 13, 6, 6);
+                        }
                     }
-                    using (System.Drawing.SolidBrush redDot = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
+                    IntPtr hIcon = bmp.GetHicon();
+                    try
                     {
-                        g.FillEllipse(redDot, 13, 13, 6, 6);
+                        using (Icon icon = Icon.FromHandle(hIcon))
+                        {
+                            _trayIcon.Icon = (Icon)icon.Clone();
+                        }
+                    }
+                    finally
+                    {
+                        Win32Helper.DestroyIcon(hIcon);
                     }
                 }
-                _trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
             }
             _trayIcon.Visible = true;
             _trayIcon.DoubleClick += (s, e) => mainWin.ShowWindowAnimated();
@@ -176,16 +190,11 @@ namespace CrosshairMaster
 
             menu.MenuItems.Add(miShowSettings);
             menu.MenuItems.Add(miToggle);
+            menu.MenuItems.Add(miRefreshRes);
             menu.MenuItems.Add(miSep);
             menu.MenuItems.Add(miExit);
 
             _trayIcon.ContextMenu = menu;
-            _trayIcon.DoubleClick += (s, e) =>
-            {
-                mainWin.Show();
-                mainWin.WindowState = WindowState.Normal;
-                mainWin.Activate();
-            };
         }
     }
 }

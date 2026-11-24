@@ -159,7 +159,7 @@ namespace CrosshairMaster.Views
         private void RenameGroupLayer(CrosshairLayer layer)
         {
             if (layer == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v7.1", layer.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v7.2", layer.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 layer.Name = newName.Trim();
@@ -172,7 +172,7 @@ namespace CrosshairMaster.Views
         {
             CrosshairGroup g = new CrosshairGroup();
             string defName = string.Format("【方案组 #{0}】", _config.Groups.Count + 1);
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v7.1", defName);
+            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v7.2", defName);
             g.Name = (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(input.Trim())) ? input.Trim() : defName;
             _config.Groups.Add(g);
             _selectedGroup = g;
@@ -183,7 +183,7 @@ namespace CrosshairMaster.Views
         private void RenameCurrentGroup()
         {
             if (_selectedGroup == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v7.1", _selectedGroup.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v7.2", _selectedGroup.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 _selectedGroup.Name = newName.Trim();

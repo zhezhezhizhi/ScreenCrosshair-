@@ -141,7 +141,7 @@ namespace CrosshairMaster.Views
                     {
                         string customName = Microsoft.VisualBasic.Interaction.InputBox(
                             string.Format("请输入保存至方案组【{0}】的准星名称:", _selectedGroup.Name),
-                            "存入方案组 - 自定义名称 (v7.1)",
+                            "存入方案组 - 自定义名称 (v7.2)",
                             layer.Name);
                         if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(customName.Trim()))
                         {
@@ -153,7 +153,7 @@ namespace CrosshairMaster.Views
                         _selectedGroup.Layers.Add(savedLayer);
                         RefreshGroupList();
                         _config.Save();
-                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 };
 

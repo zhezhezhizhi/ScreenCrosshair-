@@ -348,7 +348,7 @@ namespace CrosshairMaster.Views
             btnSaveColors.Click += (s, e) =>
             {
                 _config.Save();
-                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             bottomBtns.Children.Add(btnSaveColors);
 
@@ -502,11 +502,11 @@ namespace CrosshairMaster.Views
                         UpdateAllViews();
                         UpdateResolutionUI();
 
-                        MessageBox.Show("配置导入成功并已保存生效！", "导入成功 - ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("配置导入成功并已保存生效！", "导入成功 - ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("导入配置文件失败: " + ex.Message, "导入错误 - ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("导入配置文件失败: " + ex.Message, "导入错误 - ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             };

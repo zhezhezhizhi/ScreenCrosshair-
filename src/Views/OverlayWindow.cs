@@ -23,6 +23,7 @@ namespace CrosshairMaster.Views
 
         // Screen Resolution & Auto Centering State (⭐ USER REQUEST: 分辨率变动时自动刷新软件)
         public bool AutoRefreshEnabled { get; set; }
+        public int TargetMonitorIndex { get; set; }
         public event Action<ScreenMetrics> OnResolutionChanged;
         private int _lastTrackedPhysicalW = 0;
         private int _lastTrackedPhysicalH = 0;
@@ -62,7 +63,7 @@ namespace CrosshairMaster.Views
             SnapsToDevicePixels = false;
             UseLayoutRounding = false;
 
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(TargetMonitorIndex);
             Left = 0;
             Top = 0;
             Width = m.DipWidth;
@@ -119,7 +120,7 @@ namespace CrosshairMaster.Views
             }
             catch { }
 
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(TargetMonitorIndex);
             _lastTrackedPhysicalW = m.PhysicalWidth;
             _lastTrackedPhysicalH = m.PhysicalHeight;
             _lastTrackedDpiPercent = m.DpiPercent;
@@ -185,7 +186,7 @@ namespace CrosshairMaster.Views
         {
             if (!AutoRefreshEnabled) return;
 
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(TargetMonitorIndex);
             if (_lastTrackedPhysicalW <= 0 || _lastTrackedPhysicalH <= 0)
             {
                 _lastTrackedPhysicalW = m.PhysicalWidth;
@@ -234,20 +235,21 @@ namespace CrosshairMaster.Views
 
         public void CheckAndRefreshResolution(bool triggerEvent = true)
         {
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(TargetMonitorIndex);
             _lastTrackedPhysicalW = m.PhysicalWidth;
             _lastTrackedPhysicalH = m.PhysicalHeight;
             _lastTrackedDpiPercent = m.DpiPercent;
 
-            Left = 0;
-            Top = 0;
+            double scale = m.DpiScale > 0 ? m.DpiScale : 1.0;
+            Left = m.ScreenX / scale;
+            Top = m.ScreenY / scale;
             Width = m.DipWidth;
             Height = m.DipHeight;
 
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
+                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, m.ScreenX, m.ScreenY, m.PhysicalWidth, m.PhysicalHeight,
                     Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
             }
 
@@ -376,7 +378,7 @@ namespace CrosshairMaster.Views
         {
             if (!_isOverlayActive || _canvas == null) return;
 
-            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics();
+            ScreenMetrics m = Win32Helper.GetPrimaryScreenMetrics(TargetMonitorIndex);
             double w = ActualWidth > 0 ? ActualWidth : (Width > 0 ? Width : m.DipWidth);
             double h = ActualHeight > 0 ? ActualHeight : (Height > 0 ? Height : m.DipHeight);
             double cx = w / 2.0;
@@ -415,14 +417,15 @@ namespace CrosshairMaster.Views
             _onOffsetChangedCallback = onOffsetChanged;
             _onCalibrationFinishedCallback = onFinished;
 
-            // Remove WS_EX_TRANSPARENT so mouse clicks can interact across the screen
+            // Remove WS_EX_TRANSPARENT and WS_EX_NOACTIVATE so mouse clicks can interact and keyboard (ESC) can be received
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             IntPtr curExStyle = Win32Helper.GetWindowLongPtr(hWnd, Win32Helper.GWL_EXSTYLE);
-            long newExStyle = curExStyle.ToInt64() & ~Win32Helper.WS_EX_TRANSPARENT;
+            long newExStyle = curExStyle.ToInt64() & ~Win32Helper.WS_EX_TRANSPARENT & ~Win32Helper.WS_EX_NOACTIVATE;
             Win32Helper.SetWindowLongPtr(hWnd, Win32Helper.GWL_EXSTYLE, new IntPtr(newExStyle));
 
             this.IsHitTestVisible = true;
             this.Focusable = true;
+            this.Activate();
             this.Focus();
 
             _calibrationCanvas.IsHitTestVisible = true;
@@ -443,6 +446,11 @@ namespace CrosshairMaster.Views
                 _isDraggingAnchor = false;
                 _calibrationCanvas.ReleaseMouseCapture();
             }
+
+            // 修复 Bug 2: 显式解绑鼠标事件，杜绝重复绑定导致位移累加暴涨
+            _calibrationCanvas.MouseDown -= OnCalibrationMouseDown;
+            _calibrationCanvas.MouseMove -= OnCalibrationMouseMove;
+            _calibrationCanvas.MouseUp -= OnCalibrationMouseUp;
 
             // Clean up UI in calibration layer
             _calibrationCanvas.Children.Clear();

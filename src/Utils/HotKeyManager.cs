@@ -8,6 +8,11 @@ namespace CrosshairMaster.Utils
         public const int HOTKEY_ID_OVERLAY = 9001;
         public const int HOTKEY_ID_SETTINGS = 9002;
 
+        public const int MOD_ALT = 0x0001;
+        public const int MOD_CONTROL = 0x0002;
+        public const int MOD_SHIFT = 0x0004;
+        public const int MOD_WIN = 0x0008;
+
         private IntPtr _hWnd;
         private HwndSource _source;
 

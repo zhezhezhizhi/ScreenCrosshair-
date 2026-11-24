@@ -754,7 +754,7 @@ namespace CrosshairMaster.Views
                         double targetH = Math.Max(4, Math.Min(500, Math.Round(_sliderImageW.Value / ratio)));
                         _isUpdatingUi = true;
                         _sliderImageH.Value = targetH;
-                        _txtImageHVal.Text = ((int)targetH).ToString();
+                        _txtImageHVal.Text = targetH.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
                         _selectedLayer.ImageHeight = targetH;
                         _isUpdatingUi = false;
                     }
@@ -811,7 +811,7 @@ namespace CrosshairMaster.Views
                             {
                                 _isUpdatingUi = true;
                                 _sliderImageH.Value = targetH;
-                                _txtImageHVal.Text = ((int)targetH).ToString();
+                                _txtImageHVal.Text = targetH.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
                                 _selectedLayer.ImageHeight = targetH;
                                 _isUpdatingUi = false;
                             }
@@ -836,7 +836,7 @@ namespace CrosshairMaster.Views
                             {
                                 _isUpdatingUi = true;
                                 _sliderImageW.Value = targetW;
-                                _txtImageWVal.Text = ((int)targetW).ToString();
+                                _txtImageWVal.Text = targetW.ToString("0.000", System.Globalization.CultureInfo.InvariantCulture);
                                 _selectedLayer.ImageWidth = targetW;
                                 _isUpdatingUi = false;
                             }

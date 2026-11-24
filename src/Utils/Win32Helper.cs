@@ -88,6 +88,9 @@ namespace CrosshairMaster.Utils
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool DestroyIcon(IntPtr hIcon);
+
         public static void MakeClickThrough(IntPtr hWnd)
         {
             IntPtr curExStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
@@ -105,32 +108,45 @@ namespace CrosshairMaster.Utils
                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
         }
 
-        public static ScreenMetrics GetPrimaryScreenMetrics()
+        public static ScreenMetrics GetPrimaryScreenMetrics(int monitorIndex = 0)
         {
             ScreenMetrics m = new ScreenMetrics();
             int physW = 0;
             int physH = 0;
+            int posX = 0;
+            int posY = 0;
+            string devName = "Primary";
 
-            // 1. Primary source: Win32 GetSystemMetrics (reflects current active display mode in DPI-aware process)
+            // Multi-monitor support via Forms Screen.AllScreens
             try
             {
-                physW = GetSystemMetrics(SM_CXSCREEN);
-                physH = GetSystemMetrics(SM_CYSCREEN);
+                var screens = System.Windows.Forms.Screen.AllScreens;
+                if (screens != null && screens.Length > 0)
+                {
+                    int idx = (monitorIndex >= 0 && monitorIndex < screens.Length) ? monitorIndex : 0;
+                    var scr = screens[idx];
+                    physW = scr.Bounds.Width;
+                    physH = scr.Bounds.Height;
+                    posX = scr.Bounds.X;
+                    posY = scr.Bounds.Y;
+                    devName = scr.DeviceName;
+                    m.MonitorIndex = idx;
+                }
             }
             catch { }
 
-            // 2. Secondary source: Windows Forms PrimaryScreen Bounds
+            // Fallback 1: Win32 GetSystemMetrics
             if (physW <= 0 || physH <= 0)
             {
                 try
                 {
-                    physW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
-                    physH = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+                    physW = GetSystemMetrics(SM_CXSCREEN);
+                    physH = GetSystemMetrics(SM_CYSCREEN);
                 }
                 catch { }
             }
 
-            // 3. Fallback: GDI DESKTOPHORZRES
+            // Fallback 2: GDI DESKTOPHORZRES
             if (physW <= 0 || physH <= 0)
             {
                 try
@@ -149,8 +165,11 @@ namespace CrosshairMaster.Utils
             if (physW <= 0) physW = 1920;
             if (physH <= 0) physH = 1080;
 
+            m.ScreenX = posX;
+            m.ScreenY = posY;
             m.PhysicalWidth = physW;
             m.PhysicalHeight = physH;
+            m.DeviceName = devName;
 
             // Accurate DPI scale from GDI LOGPIXELSX (or 96 default)
             int logPixelsX = 96;
@@ -185,6 +204,11 @@ namespace CrosshairMaster.Utils
 
     public class ScreenMetrics
     {
+        public int ScreenX { get; set; }
+        public int ScreenY { get; set; }
+        public int MonitorIndex { get; set; }
+        public string DeviceName { get; set; }
+
         public int PhysicalWidth { get; set; }
         public int PhysicalHeight { get; set; }
         public double DpiScale { get; set; }

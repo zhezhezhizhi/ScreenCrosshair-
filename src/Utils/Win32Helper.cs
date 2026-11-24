@@ -27,15 +27,10 @@ namespace CrosshairMaster.Utils
         public const int SM_CXSCREEN = 0;
         public const int SM_CYSCREEN = 1;
 
-        public const int HORZRES = 8;
-        public const int VERTRES = 10;
         public const int LOGPIXELSX = 88;
         public const int LOGPIXELSY = 90;
         public const int DESKTOPVERTRES = 117;
         public const int DESKTOPHORZRES = 118;
-
-        [DllImport("user32.dll")]
-        public static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetDC(IntPtr hWnd);
@@ -116,24 +111,37 @@ namespace CrosshairMaster.Utils
             int physW = 0;
             int physH = 0;
 
+            // 1. Primary source: Win32 GetSystemMetrics (reflects current active display mode in DPI-aware process)
             try
             {
-                IntPtr hdc = GetDC(IntPtr.Zero);
-                if (hdc != IntPtr.Zero)
-                {
-                    physW = GetDeviceCaps(hdc, DESKTOPHORZRES);
-                    physH = GetDeviceCaps(hdc, DESKTOPVERTRES);
-                    ReleaseDC(IntPtr.Zero, hdc);
-                }
+                physW = GetSystemMetrics(SM_CXSCREEN);
+                physH = GetSystemMetrics(SM_CYSCREEN);
             }
             catch { }
 
+            // 2. Secondary source: Windows Forms PrimaryScreen Bounds
             if (physW <= 0 || physH <= 0)
             {
                 try
                 {
-                    physW = GetSystemMetrics(SM_CXSCREEN);
-                    physH = GetSystemMetrics(SM_CYSCREEN);
+                    physW = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
+                    physH = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+                }
+                catch { }
+            }
+
+            // 3. Fallback: GDI DESKTOPHORZRES
+            if (physW <= 0 || physH <= 0)
+            {
+                try
+                {
+                    IntPtr hdc = GetDC(IntPtr.Zero);
+                    if (hdc != IntPtr.Zero)
+                    {
+                        physW = GetDeviceCaps(hdc, DESKTOPHORZRES);
+                        physH = GetDeviceCaps(hdc, DESKTOPVERTRES);
+                        ReleaseDC(IntPtr.Zero, hdc);
+                    }
                 }
                 catch { }
             }
@@ -144,40 +152,32 @@ namespace CrosshairMaster.Utils
             m.PhysicalWidth = physW;
             m.PhysicalHeight = physH;
 
-            // In WPF, SystemParameters.PrimaryScreenWidth / PrimaryScreenHeight gives logical DIP bounds.
-            double dipW = 0;
-            double dipH = 0;
+            // Accurate DPI scale from GDI LOGPIXELSX (or 96 default)
+            int logPixelsX = 96;
             try
             {
-                dipW = SystemParameters.PrimaryScreenWidth;
-                dipH = SystemParameters.PrimaryScreenHeight;
+                IntPtr hdc = GetDC(IntPtr.Zero);
+                if (hdc != IntPtr.Zero)
+                {
+                    logPixelsX = GetDeviceCaps(hdc, LOGPIXELSX);
+                    ReleaseDC(IntPtr.Zero, hdc);
+                }
             }
             catch { }
 
-            if (dipW <= 0 || dipH <= 0)
-            {
-                dipW = physW;
-                dipH = physH;
-            }
-
-            m.DipWidth = dipW;
-            m.DipHeight = dipH;
-
-            // Calculate dynamic scale between physical pixels and WPF DIP coordinates
-            double scale = (dipW > 0 && physW > 0) ? ((double)physW / dipW) : 1.0;
+            double scale = logPixelsX > 0 ? ((double)logPixelsX / 96.0) : 1.0;
             int percent = (int)Math.Round(scale * 100.0);
 
-            // Handle slight rounding variations around 100% (e.g. 99% or 101%)
             if (Math.Abs(percent - 100) <= 2)
             {
                 percent = 100;
                 scale = 1.0;
-                m.DipWidth = physW;
-                m.DipHeight = physH;
             }
 
             m.DpiScale = scale;
             m.DpiPercent = percent;
+            m.DipWidth = physW / scale;
+            m.DipHeight = physH / scale;
 
             return m;
         }

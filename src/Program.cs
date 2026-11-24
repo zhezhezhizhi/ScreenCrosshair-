@@ -30,10 +30,10 @@ namespace CrosshairMaster
 
             // 2. Single instance check
             bool isNewInstance;
-            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v69_SingleInstance_Mutex", out isNewInstance);
+            _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v71_SingleInstance_Mutex", out isNewInstance);
             if (!isNewInstance)
             {
-                System.Windows.MessageBox.Show("ScreenCrosshair v6.9 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v6.9", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("ScreenCrosshair v7.1 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v7.1", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -111,7 +111,7 @@ namespace CrosshairMaster
         private static void SetupTrayIcon(Application app, AppConfig config, OverlayWindow overlay, MainWindow mainWin)
         {
             _trayIcon = new NotifyIcon();
-            _trayIcon.Text = "ScreenCrosshair v6.9 (按F10调出面板)";
+            _trayIcon.Text = "ScreenCrosshair v7.1 (按F10调出面板)";
 
             // Extract icon from embedded application icon or fallback
             try

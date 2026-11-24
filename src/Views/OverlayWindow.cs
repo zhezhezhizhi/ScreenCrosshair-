@@ -131,7 +131,8 @@ namespace CrosshairMaster.Views
 
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.ForceTopMost(hWnd);
+                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
+                    Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
             }
 
             _topmostTimer = new DispatcherTimer();
@@ -246,7 +247,8 @@ namespace CrosshairMaster.Views
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             if (hWnd != IntPtr.Zero)
             {
-                Win32Helper.ForceTopMost(hWnd);
+                Win32Helper.SetWindowPos(hWnd, Win32Helper.HWND_TOPMOST, 0, 0, m.PhysicalWidth, m.PhysicalHeight,
+                    Win32Helper.SWP_NOACTIVATE | Win32Helper.SWP_SHOWWINDOW);
             }
 
             UpdateLayout();

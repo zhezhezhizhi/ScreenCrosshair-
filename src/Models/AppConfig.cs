@@ -224,6 +224,81 @@ namespace CrosshairMaster.Models
             return Path.Combine(folder, "config.json");
         }
 
+        public static AppConfig FromJson(string json)
+        {
+            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(json.Trim()))
+            {
+                throw new InvalidOperationException("配置文件内容为空。");
+            }
+
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AppConfig));
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                AppConfig cfg = (AppConfig)serializer.ReadObject(ms);
+                if (cfg == null)
+                {
+                    throw new InvalidOperationException("无法解析 JSON 配置结构。");
+                }
+
+                if (cfg.Layers == null) cfg.Layers = new List<CrosshairLayer>();
+                if (cfg.Groups == null) cfg.Groups = new List<CrosshairGroup>();
+
+                if (cfg.Layers.Count == 0)
+                {
+                    CrosshairLayer defLayer = new CrosshairLayer
+                    {
+                        Name = "默认十字准星",
+                        LineMode = "Both",
+                        Length = 10,
+                        Thickness = 2,
+                        Gap = 4,
+                        ColorHex = "#00FF00",
+                        ShowOutline = true,
+                        OutlineThickness = 1
+                    };
+                    cfg.Layers.Add(defLayer);
+                }
+
+                if (string.IsNullOrEmpty(cfg.SelectedLayerId))
+                {
+                    cfg.SelectedLayerId = cfg.Layers[0].Id;
+                }
+
+                if (string.IsNullOrEmpty(cfg.ToggleHotKeyName)) cfg.ToggleHotKeyName = "F8";
+                if (string.IsNullOrEmpty(cfg.SettingsHotKeyName)) cfg.SettingsHotKeyName = "F10";
+                if (string.IsNullOrEmpty(cfg.ThemePreset) || cfg.ThemePreset == "CyberNeon") cfg.ThemePreset = "AppleDark";
+                if (string.IsNullOrEmpty(cfg.ThemeAccentHex) || cfg.ThemeAccentHex == "#00E5FF") cfg.ThemeAccentHex = "#0A84FF";
+
+                if (string.IsNullOrEmpty(cfg.UiBgColorHex)) cfg.UiBgColorHex = "#1C1C1E";
+                if (string.IsNullOrEmpty(cfg.UiCardColorHex)) cfg.UiCardColorHex = "#2C2C2E";
+                if (string.IsNullOrEmpty(cfg.UiHeaderColorHex)) cfg.UiHeaderColorHex = "#242426";
+                if (string.IsNullOrEmpty(cfg.UiBorderColorHex) || cfg.UiBorderColorHex == "#3A3A3E") cfg.UiBorderColorHex = "#38383A";
+                if (string.IsNullOrEmpty(cfg.UiInputBgColorHex) || cfg.UiInputBgColorHex == "#161618") cfg.UiInputBgColorHex = "#1C1C1E";
+                if (string.IsNullOrEmpty(cfg.UiInputTextColorHex)) cfg.UiInputTextColorHex = "#FFFFFF";
+                if (string.IsNullOrEmpty(cfg.UiButtonBgColorHex)) cfg.UiButtonBgColorHex = "#0A84FF";
+                if (string.IsNullOrEmpty(cfg.UiDangerColorHex)) cfg.UiDangerColorHex = "#FF453A";
+                if (string.IsNullOrEmpty(cfg.UiTextColorHex)) cfg.UiTextColorHex = "#FFFFFF";
+                if (string.IsNullOrEmpty(cfg.UiSubTextColorHex) || cfg.UiSubTextColorHex == "#A0A0B0") cfg.UiSubTextColorHex = "#8E8E93";
+
+                if (string.IsNullOrEmpty(cfg.PreviewBackground)) cfg.PreviewBackground = "Dark";
+                if (cfg.PreviewZoom <= 0) cfg.PreviewZoom = 10;
+                if (cfg.ColumnLeftRatio <= 50) cfg.ColumnLeftRatio = 290.0;
+                if (cfg.ColumnCenterRatio <= 50) cfg.ColumnCenterRatio = 380.0;
+                if (cfg.ColumnRightRatio <= 50) cfg.ColumnRightRatio = 480.0;
+
+                if (!json.Contains("\"PreviewOnlySelected\""))
+                {
+                    cfg.PreviewOnlySelected = true;
+                }
+                if (!json.Contains("\"AutoRefreshOnResolutionChange\""))
+                {
+                    cfg.AutoRefreshOnResolutionChange = true;
+                }
+
+                return cfg;
+            }
+        }
+
         public static AppConfig Load()
         {
             string path = GetConfigPath();
@@ -231,51 +306,12 @@ namespace CrosshairMaster.Models
             {
                 try
                 {
-                    DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AppConfig));
-                    using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+                    string rawJson = File.ReadAllText(path);
+                    if (!string.IsNullOrEmpty(rawJson) && !string.IsNullOrEmpty(rawJson.Trim()))
                     {
-                        AppConfig cfg = (AppConfig)serializer.ReadObject(fs);
+                        AppConfig cfg = FromJson(rawJson);
                         if (cfg != null && cfg.Layers != null && cfg.Layers.Count > 0)
                         {
-                            if (string.IsNullOrEmpty(cfg.ToggleHotKeyName)) cfg.ToggleHotKeyName = "F8";
-                            if (string.IsNullOrEmpty(cfg.SettingsHotKeyName)) cfg.SettingsHotKeyName = "F10";
-                            if (string.IsNullOrEmpty(cfg.ThemePreset) || cfg.ThemePreset == "CyberNeon") cfg.ThemePreset = "AppleDark";
-                            if (string.IsNullOrEmpty(cfg.ThemeAccentHex) || cfg.ThemeAccentHex == "#00E5FF") cfg.ThemeAccentHex = "#0A84FF";
-
-                            if (string.IsNullOrEmpty(cfg.UiBgColorHex)) cfg.UiBgColorHex = "#1C1C1E";
-                            if (string.IsNullOrEmpty(cfg.UiCardColorHex)) cfg.UiCardColorHex = "#2C2C2E";
-                            if (string.IsNullOrEmpty(cfg.UiHeaderColorHex)) cfg.UiHeaderColorHex = "#242426";
-                            if (string.IsNullOrEmpty(cfg.UiBorderColorHex) || cfg.UiBorderColorHex == "#3A3A3E") cfg.UiBorderColorHex = "#38383A";
-                            if (string.IsNullOrEmpty(cfg.UiInputBgColorHex) || cfg.UiInputBgColorHex == "#161618") cfg.UiInputBgColorHex = "#1C1C1E";
-                            if (string.IsNullOrEmpty(cfg.UiInputTextColorHex)) cfg.UiInputTextColorHex = "#FFFFFF";
-                            if (string.IsNullOrEmpty(cfg.UiButtonBgColorHex)) cfg.UiButtonBgColorHex = "#0A84FF";
-                            if (string.IsNullOrEmpty(cfg.UiDangerColorHex)) cfg.UiDangerColorHex = "#FF453A";
-                            if (string.IsNullOrEmpty(cfg.UiTextColorHex)) cfg.UiTextColorHex = "#FFFFFF";
-                            if (string.IsNullOrEmpty(cfg.UiSubTextColorHex) || cfg.UiSubTextColorHex == "#A0A0B0") cfg.UiSubTextColorHex = "#8E8E93";
-
-                            if (string.IsNullOrEmpty(cfg.PreviewBackground)) cfg.PreviewBackground = "Dark";
-                            if (cfg.PreviewZoom <= 0) cfg.PreviewZoom = 10;
-                            if (cfg.ColumnLeftRatio <= 50) cfg.ColumnLeftRatio = 290.0;
-                            if (cfg.ColumnCenterRatio <= 50) cfg.ColumnCenterRatio = 380.0;
-                            if (cfg.ColumnRightRatio <= 50) cfg.ColumnRightRatio = 480.0;
-                            if (cfg.Groups == null)
-                            {
-                                cfg.Groups = new List<CrosshairGroup>();
-                            }
-                            // ⭐ USER REQUEST: 默认是仅选中的准星
-                            try
-                            {
-                                string rawJson = File.ReadAllText(path);
-                                if (!rawJson.Contains("\"PreviewOnlySelected\""))
-                                {
-                                    cfg.PreviewOnlySelected = true;
-                                }
-                                if (!rawJson.Contains("\"AutoRefreshOnResolutionChange\""))
-                                {
-                                    cfg.AutoRefreshOnResolutionChange = true;
-                                }
-                            }
-                            catch { }
                             return cfg;
                         }
                     }

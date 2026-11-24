@@ -30,43 +30,43 @@ namespace CrosshairMaster.Views
 
             // 1. Hotkey settings
             settingsPanel.Children.Add(CreateSettingsCard(
-                "⚡ 全局快捷键自定义 (支持任意按键录制)",
-                "无需切屏，可在游戏中直接按下快捷键触发。点击按钮后，直接按下键盘上你想绑定的任意按键即可！",
+                "快捷键设置",
+                "支持单键与组合键（如 F8、Alt+F8 等），点击按钮后按下目标按键即可绑定。",
                 BuildHotkeySettingsContent()
             ));
 
             // 2. Custom Theme & All UI Colors (⭐ USER REQUEST: 下拉框高对比度修复与全UI元素独立自定义色彩)
             settingsPanel.Children.Add(CreateSettingsCard(
-                "🎨 UI 全局元素色彩深度自定义 (含下拉框高对比度修复与11大UI元素调色板)",
-                "全面支持软件主背景、卡片底色、顶栏底栏、边框线条、下拉框底色与文字、高亮强调色、按钮及文字全套11种UI部件独立调色！彻底告别低对比度看不清的问题。",
+                "界面主题与配色",
+                "提供常用主题预设，并支持自定义各界面元素的背景与文字颜色。",
                 BuildThemeSettingsContent()
             ));
 
             // 3. Custom Software Background Wallpaper (⭐ USER REQUEST: 软件主窗口背景壁纸自定义)
             settingsPanel.Children.Add(CreateSettingsCard(
-                "🖼️ 软件主界面自定义背景壁纸 (Window Wallpaper)",
-                "可以导入任意你喜欢的壁纸、游戏海报或风景图作为整个 ScreenCrosshair 软件的主窗口背景，并自由调节不透明度。",
+                "窗口背景壁纸",
+                "支持导入本地图片作为软件面板背景，可自由调节透明度。",
                 BuildWindowWallpaperContent()
             ));
 
             // 4. Screen Resolution & Auto Centering (⭐ USER REQUEST: 检查屏幕分辨率与变动时自动居中)
             settingsPanel.Children.Add(CreateSettingsCard(
-                "🖥️ 屏幕物理分辨率检测与准星自动居中 (0,0 居中防偏移)",
-                "实时监控屏幕物理分辨率变化。当在 Windows 或全屏游戏中切换分辨率时，准星视口自动重新对齐绝对正中心。",
+                "屏幕分辨率与显示器",
+                "检测当前显示设备物理分辨率，支持多显示器切换与分辨率变动自动对齐。",
                 BuildResolutionSettingsContent()
             ));
 
             // 5. Config Import & Export
             settingsPanel.Children.Add(CreateSettingsCard(
-                "💾 配置文件导入与导出",
-                "将您的专属多层准星与方案组配置导出为 JSON 文件分享给好友，或从好友处导入配置。",
+                "配置导入与导出",
+                "将准星图层与方案配置导出为 JSON 文件备份，或导入已有配置文件。",
                 BuildConfigManagerContent()
             ));
 
             // 6. Auto Start
             settingsPanel.Children.Add(CreateSettingsCard(
-                "🚀 系统运行与开机自启动",
-                "设置开机时是否自动在系统后台静默启动准星大师。",
+                "开机自启动",
+                "设置开机时是否在系统后台自动启动本工具。",
                 BuildAutoStartContent()
             ));
 
@@ -95,7 +95,7 @@ namespace CrosshairMaster.Views
 
             _chkAutoRefreshRes = new CheckBox
             {
-                Content = "当屏幕分辨率变动时自动刷新软件与准星 (保证 0, 0 永远在屏幕中心)",
+                Content = "屏幕分辨率改变时自动重新对齐中心",
                 IsChecked = _config.AutoRefreshOnResolutionChange,
                 Foreground = Brushes.White,
                 FontSize = 11.5,
@@ -116,7 +116,7 @@ namespace CrosshairMaster.Views
             p.Children.Add(_chkAutoRefreshRes);
 
             StackPanel btnRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 4) };
-            Button btnManualCheck = CreateThemedActionButton("🔄 立即检查并重新校准中心", double.NaN, 28);
+            Button btnManualCheck = CreateThemedActionButton("重新检测并对齐中心", double.NaN, 28);
             btnManualCheck.Padding = new Thickness(14, 0, 14, 0);
             btnManualCheck.Click += (s, e) => CheckAndRefreshResolution(true);
             btnRow.Children.Add(btnManualCheck);
@@ -125,7 +125,7 @@ namespace CrosshairMaster.Views
 
             TextBlock desc = new TextBlock
             {
-                Text = "💡 说明：当您在游戏中切换分辨率（例如 4:3 拉伸、1080P/2K/4K 互切）或插拔显示器时，Windows 会广播分辨率变动事件。开启此功能后，准星大师会在毫秒级内自动捕捉变动并重设窗口视口，确保绝对中心 (0.000, 0.000) 始终严丝合缝对准您的准心与枪口，绝无任何偏移。",
+                Text = "说明：在游戏切换拉伸分辨率或插拔显示器时，开启自动对齐可确保准星始终对齐物理屏幕正中心。",
                 Foreground = _themeSubTextBrush ?? new SolidColorBrush(Color.FromRgb(142, 142, 147)),
                 FontSize = 10.5,
                 TextWrapping = TextWrapping.Wrap,
@@ -145,16 +145,16 @@ namespace CrosshairMaster.Views
             r1.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             r1.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            TextBlock lbl1 = new TextBlock { Text = "准星开启/隐藏切换键:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-            _btnRecordOverlayKey = CreateButton(string.Format("【{0}】点击更改", _config.ToggleHotKeyName), 160, 30, NeutralBtnColor);
+            TextBlock lbl1 = new TextBlock { Text = "开关准星快捷键:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            _btnRecordOverlayKey = CreateButton(string.Format("【{0}】点击修改", _config.ToggleHotKeyName), 160, 30, NeutralBtnColor);
             _btnRecordOverlayKey.Click += (s, e) =>
             {
                 _isRecordingOverlayKey = true;
                 _isRecordingSettingsKey = false;
-                _btnRecordOverlayKey.Content = "[请按下任意键盘按键...]";
+                _btnRecordOverlayKey.Content = "[请按下目标按键...]";
                 _btnRecordOverlayKey.Background = new SolidColorBrush(DangerBtnColor);
             };
-            TextBlock tip1 = new TextBlock { Text = "默认按键为 F8，支持 F1~F12, CapsLock, Insert, Home, 字母键等", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 0, 0) };
+            TextBlock tip1 = new TextBlock { Text = "默认按键为 F8，支持任意按键或组合键（如 Alt+F8）", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 0, 0) };
             Grid.SetColumn(lbl1, 0);
             Grid.SetColumn(_btnRecordOverlayKey, 1);
             Grid.SetColumn(tip1, 2);
@@ -168,16 +168,16 @@ namespace CrosshairMaster.Views
             r2.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             r2.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            TextBlock lbl2 = new TextBlock { Text = "控制面板呼出/隐藏键:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-            _btnRecordSettingsKey = CreateButton(string.Format("【{0}】点击更改", _config.SettingsHotKeyName), 160, 30, NeutralBtnColor);
+            TextBlock lbl2 = new TextBlock { Text = "呼出/隐藏面板快捷键:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            _btnRecordSettingsKey = CreateButton(string.Format("【{0}】点击修改", _config.SettingsHotKeyName), 160, 30, NeutralBtnColor);
             _btnRecordSettingsKey.Click += (s, e) =>
             {
                 _isRecordingSettingsKey = true;
                 _isRecordingOverlayKey = false;
-                _btnRecordSettingsKey.Content = "[请按下任意键盘按键...]";
+                _btnRecordSettingsKey.Content = "[请按下目标按键...]";
                 _btnRecordSettingsKey.Background = new SolidColorBrush(DangerBtnColor);
             };
-            TextBlock tip2 = new TextBlock { Text = "默认按键为 F10，游戏中按下可立即调出本面板", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 0, 0) };
+            TextBlock tip2 = new TextBlock { Text = "默认按键为 F10", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(15, 0, 0, 0) };
             Grid.SetColumn(lbl2, 0);
             Grid.SetColumn(_btnRecordSettingsKey, 1);
             Grid.SetColumn(tip2, 2);
@@ -198,11 +198,11 @@ namespace CrosshairMaster.Views
                 {
                     _hotKeyManager.Register(_config.ToggleHotKeyVK, 0, _config.SettingsHotKeyVK, 0);
                 }
-                _btnRecordOverlayKey.Content = "【F8】点击更改";
-                _btnRecordSettingsKey.Content = "【F10】点击更改";
+                _btnRecordOverlayKey.Content = "【F8】点击修改";
+                _btnRecordSettingsKey.Content = "【F10】点击修改";
                 UpdateStatusBadge();
                 _config.Save();
-                MessageBox.Show("快捷键已恢复默认：【F8 开关准星】 【F10 呼出面板】", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("快捷键已恢复默认 (F8 / F10)", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             p.Children.Add(btnResetHk);
 
@@ -220,18 +220,18 @@ namespace CrosshairMaster.Views
             r1.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(240) });
             r1.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            TextBlock lbl1 = new TextBlock { Text = "预设高对比风格:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            TextBlock lbl1 = new TextBlock { Text = "预设主题风格:", Foreground = Brushes.White, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
             _cboThemePresets = new ComboBox { Height = 28 };
-            _cboThemePresets.Items.Add("苹果深空灰 (Apple Dark - 极简深灰)");
-            _cboThemePresets.Items.Add("苹果薄荷绿 (Apple Mint - 极简绿)");
-            _cboThemePresets.Items.Add("苹果日落橙 (Apple Orange - 晨曦橙)");
-            _cboThemePresets.Items.Add("苹果暗夜紫 (Apple Purple - 薰衣草紫)");
-            _cboThemePresets.Items.Add("苹果钛金银 (Apple Silver - 银白金属)");
-            _cboThemePresets.Items.Add("赛博霓虹 (Cyber Neon - 极光青)");
-            _cboThemePresets.Items.Add("热血战魂 (Crimson Fury - 极速红)");
-            _cboThemePresets.Items.Add("翡翠绿 (Esports Emerald - 竞技绿)");
-            _cboThemePresets.Items.Add("黄金先锋 (Golden Vanguard - 辉煌金)");
-            _cboThemePresets.Items.Add("苹果樱花粉 (Apple Blossom - 浪漫淡粉)");
+            _cboThemePresets.Items.Add("深空灰 (Dark)");
+            _cboThemePresets.Items.Add("薄荷绿 (Mint)");
+            _cboThemePresets.Items.Add("日落橙 (Orange)");
+            _cboThemePresets.Items.Add("深夜紫 (Purple)");
+            _cboThemePresets.Items.Add("钛金属 (Silver)");
+            _cboThemePresets.Items.Add("极光青 (Cyan)");
+            _cboThemePresets.Items.Add("赤红 (Crimson)");
+            _cboThemePresets.Items.Add("翡翠绿 (Emerald)");
+            _cboThemePresets.Items.Add("琥珀金 (Gold)");
+            _cboThemePresets.Items.Add("樱花粉 (Pink)");
             _cboThemePresets.SelectedIndex = GetThemePresetIndex(_config.ThemePreset);
             RegisterThemedInput(_cboThemePresets);
             _cboThemePresets.SelectionChanged += (s, e) =>
@@ -270,13 +270,13 @@ namespace CrosshairMaster.Views
                 };
                 pillPanel.Children.Add(btn);
             };
-            addPill("🍎 苹果深空灰", "AppleDark", Color.FromRgb(44, 44, 46));
-            addPill("🌸 苹果樱花粉", "ApplePink", Color.FromRgb(225, 95, 145));
-            addPill("⚡ 赛博极光青", "CyberNeon", Color.FromRgb(0, 160, 190));
-            addPill("🌿 翡翠竞技绿", "EsportsEmerald", Color.FromRgb(0, 150, 70));
-            addPill("🔥 热血战魂红", "CrimsonFury", Color.FromRgb(190, 40, 40));
-            addPill("🌙 暗夜薰衣紫", "ApplePurple", Color.FromRgb(140, 60, 180));
-            addPill("🍊 晨曦日落橙", "AppleOrange", Color.FromRgb(190, 100, 10));
+            addPill("深空灰", "AppleDark", Color.FromRgb(44, 44, 46));
+            addPill("樱花粉", "ApplePink", Color.FromRgb(225, 95, 145));
+            addPill("极光青", "CyberNeon", Color.FromRgb(0, 160, 190));
+            addPill("翡翠绿", "EsportsEmerald", Color.FromRgb(0, 150, 70));
+            addPill("赤红", "CrimsonFury", Color.FromRgb(190, 40, 40));
+            addPill("深夜紫", "ApplePurple", Color.FromRgb(140, 60, 180));
+            addPill("日落橙", "AppleOrange", Color.FromRgb(190, 100, 10));
             p.Children.Add(pillPanel);
 
             // Subtitle for individual color customizer
@@ -291,7 +291,7 @@ namespace CrosshairMaster.Views
             };
             TextBlock sepText = new TextBlock
             {
-                Text = "🛠️ UI 界面所有元素色彩独立深度调节 (支持任意自定色彩与全光谱选色):",
+                Text = "界面元素配色微调:",
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 12
@@ -308,23 +308,23 @@ namespace CrosshairMaster.Views
             // 2-column layout grid for the 11 items
             UniformGrid gridColors = new UniformGrid { Columns = 2, Margin = new Thickness(-4, 0, -4, 8) };
 
-            gridColors.Children.Add(CreateUiColorRow("1. 软件主窗口背景", () => _config.UiBgColorHex, val => _config.UiBgColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("2. 卡片面板容器底色", () => _config.UiCardColorHex, val => _config.UiCardColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("3. 顶栏与底栏背景", () => _config.UiHeaderColorHex, val => _config.UiHeaderColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("4. 边框与分割线条颜色", () => _config.UiBorderColorHex, val => _config.UiBorderColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("5. 下拉选项框背景 (修复低对比)", () => _config.UiInputBgColorHex, val => _config.UiInputBgColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("6. 下拉框与输入文字 (超高对比)", () => _config.UiInputTextColorHex, val => _config.UiInputTextColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("7. 主题高亮与强调色", () => _config.ThemeAccentHex, val => _config.ThemeAccentHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("8. 主要功能按钮背景", () => _config.UiButtonBgColorHex, val => _config.UiButtonBgColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("9. 危险与删除按钮色", () => _config.UiDangerColorHex, val => _config.UiDangerColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("10. 全局标签与标题字色", () => _config.UiTextColorHex, val => _config.UiTextColorHex = val, onColorChanged));
-            gridColors.Children.Add(CreateUiColorRow("11. 次要说明文本颜色", () => _config.UiSubTextColorHex, val => _config.UiSubTextColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("窗口背景", () => _config.UiBgColorHex, val => _config.UiBgColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("卡片面板背景", () => _config.UiCardColorHex, val => _config.UiCardColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("顶栏与底栏", () => _config.UiHeaderColorHex, val => _config.UiHeaderColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("边框线条", () => _config.UiBorderColorHex, val => _config.UiBorderColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("输入框与下拉框背景", () => _config.UiInputBgColorHex, val => _config.UiInputBgColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("输入框文本颜色", () => _config.UiInputTextColorHex, val => _config.UiInputTextColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("强调高亮色", () => _config.ThemeAccentHex, val => _config.ThemeAccentHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("主按钮背景", () => _config.UiButtonBgColorHex, val => _config.UiButtonBgColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("危险/删除按钮背景", () => _config.UiDangerColorHex, val => _config.UiDangerColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("主要文字颜色", () => _config.UiTextColorHex, val => _config.UiTextColorHex = val, onColorChanged));
+            gridColors.Children.Add(CreateUiColorRow("次要说明文字", () => _config.UiSubTextColorHex, val => _config.UiSubTextColorHex = val, onColorChanged));
 
             p.Children.Add(gridColors);
 
             // Bottom action buttons
             StackPanel bottomBtns = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
-            Button btnResetApple = CreateButton("↺ 重置为苹果原生深色 (Apple Dark)", double.NaN, 28, NeutralBtnColor);
+            Button btnResetApple = CreateButton("重置为默认主题", double.NaN, 28, NeutralBtnColor);
             btnResetApple.Padding = new Thickness(12, 0, 12, 0);
             btnResetApple.Margin = new Thickness(0, 0, 8, 0);
             btnResetApple.Click += (s, e) =>
@@ -334,7 +334,7 @@ namespace CrosshairMaster.Views
             };
             bottomBtns.Children.Add(btnResetApple);
 
-            Button btnOledBlack = CreateButton("⚡ 一键切换超高对比纯黑 (OLED Pure Black)", double.NaN, 28, NeutralBtnColor);
+            Button btnOledBlack = CreateButton("纯黑高对比模式", double.NaN, 28, NeutralBtnColor);
             btnOledBlack.Padding = new Thickness(12, 0, 12, 0);
             btnOledBlack.Margin = new Thickness(0, 0, 8, 0);
             btnOledBlack.Click += (s, e) =>
@@ -343,12 +343,12 @@ namespace CrosshairMaster.Views
             };
             bottomBtns.Children.Add(btnOledBlack);
 
-            Button btnSaveColors = CreateThemedActionButton("💾 立即保存所有UI配色", double.NaN, 28);
+            Button btnSaveColors = CreateThemedActionButton("保存配色", double.NaN, 28);
             btnSaveColors.Padding = new Thickness(16, 0, 16, 0);
             btnSaveColors.Click += (s, e) =>
             {
                 _config.Save();
-                MessageBox.Show("所有 UI 界面独立配色已成功保存！下次启动自动生效。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("配色方案已保存", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             bottomBtns.Children.Add(btnSaveColors);
 
@@ -384,7 +384,7 @@ namespace CrosshairMaster.Views
             btnClearWp.Click += (s, e) =>
             {
                 _config.WindowBgImagePath = "";
-                _txtWindowWallpaperPath.Text = "(当前未指定外部壁纸，使用默认深色主题)";
+                _txtWindowWallpaperPath.Text = "(未设置背景图片，使用主题底色)";
                 UpdateWindowBackground();
                 _config.Save();
             };
@@ -393,7 +393,7 @@ namespace CrosshairMaster.Views
 
             _txtWindowWallpaperPath = new TextBlock
             {
-                Text = !string.IsNullOrEmpty(_config.WindowBgImagePath) ? _config.WindowBgImagePath : "(当前未指定外部壁纸，使用默认深色主题)",
+                Text = !string.IsNullOrEmpty(_config.WindowBgImagePath) ? _config.WindowBgImagePath : "(未设置背景图片，使用主题底色)",
                 Foreground = Brushes.White,
                 FontSize = 11,
                 Margin = new Thickness(0, 2, 0, 8)
@@ -541,7 +541,7 @@ namespace CrosshairMaster.Views
             StackPanel p = new StackPanel();
             _chkStartWithWindows = new CheckBox
             {
-                Content = "随 Windows 开机自动启动准星大师 (托盘静默运行)",
+                Content = "开机自动启动 (最小化到托盘)",
                 IsChecked = _config.StartWithWindows,
                 Foreground = Brushes.White,
                 FontSize = 11.5,

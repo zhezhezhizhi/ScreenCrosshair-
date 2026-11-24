@@ -293,13 +293,13 @@ namespace CrosshairMaster.Views
                 if (m.DpiPercent != 100)
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                        "分辨率: {0}×{1} (缩放 {2}%) · v7.2",
                         m.PhysicalWidth, m.PhysicalHeight, m.DpiPercent);
                 }
                 else
                 {
                     _txtBottomStatus.Text = string.Format(
-                        "ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                        "分辨率: {0}×{1} · v7.2",
                         m.PhysicalWidth, m.PhysicalHeight);
                 }
             }
@@ -508,10 +508,10 @@ namespace CrosshairMaster.Views
             Grid.SetColumn(titlePanel, 0);
 
             StackPanel navPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(30, 0, 0, 0) };
-            _tabBtnDesigner = CreateTabNavButton("准星方案与设计器", true);
+            _tabBtnDesigner = CreateTabNavButton("准星设计", true);
             _tabBtnDesigner.Click += (s, e) => SwitchTab(true);
 
-            _tabBtnSettings = CreateTabNavButton("主题·按键·个性化", false);
+            _tabBtnSettings = CreateTabNavButton("常规设置", false);
             _tabBtnSettings.Click += (s, e) => SwitchTab(false);
 
             navPanel.Children.Add(_tabBtnDesigner);
@@ -522,7 +522,7 @@ namespace CrosshairMaster.Views
             
             _statusBadge = new TextBlock
             {
-                Text = _config.OverlayEnabled ? string.Format("● 准星运行中 ({0})", _config.ToggleHotKeyName) : string.Format("○ 准星已暂停 ({0})", _config.ToggleHotKeyName),
+                Text = _config.OverlayEnabled ? string.Format("● 准星开启 ({0})", _config.ToggleHotKeyName) : string.Format("○ 准星关闭 ({0})", _config.ToggleHotKeyName),
                 Foreground = _config.OverlayEnabled ? new SolidColorBrush(Color.FromRgb(52, 199, 89)) : new SolidColorBrush(Color.FromRgb(142, 142, 147)),
                 FontWeight = FontWeights.Bold,
                 FontSize = 12,
@@ -534,7 +534,7 @@ namespace CrosshairMaster.Views
                 _config.OverlayEnabled ? DangerBtnColor : NeutralBtnColor);
             _btnToggleOverlay.Click += (s, e) => ToggleOverlay();
 
-            Button btnMinimize = CreateButton("最小化到托盘", 100, 32, NeutralBtnColor);
+            Button btnMinimize = CreateButton("最小化", 80, 32, NeutralBtnColor);
             btnMinimize.Margin = new Thickness(8, 0, 0, 0);
             btnMinimize.Click += (s, e) => { Hide(); };
 
@@ -606,9 +606,9 @@ namespace CrosshairMaster.Views
             _txtBottomStatus = new TextBlock
             {
                 Text = initMetrics.DpiPercent != 100
-                    ? string.Format("ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} (缩放 {2}%) · by zhezhi",
+                    ? string.Format("分辨率: {0}×{1} (缩放 {2}%) · v7.2",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent)
-                    : string.Format("ScreenCrosshair v7.2 · 全局准星引擎已就绪 · 分辨率: {0}×{1} · by zhezhi",
+                    : string.Format("分辨率: {0}×{1} · v7.2",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight),
                 Foreground = new SolidColorBrush(Color.FromRgb(180, 180, 190)),
                 FontWeight = FontWeights.SemiBold,
@@ -619,12 +619,12 @@ namespace CrosshairMaster.Views
             Grid.SetColumn(botLeftStack, 0);
 
             StackPanel botActions = new StackPanel { Orientation = Orientation.Horizontal };
-            Button btnSave = CreateThemedActionButton("💾 保存配置", 96, 28);
+            Button btnSave = CreateThemedActionButton("保存配置", 88, 28);
             btnSave.Click += (s, e) =>
             {
                 SaveColumnRatios();
                 _config.Save();
-                MessageBox.Show("所有方案组、图层、壁纸与按键配置已成功保存！", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("配置已保存", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
             };
             Button btnQuit = CreateButton("退出程序", 80, 28, NeutralBtnColor);
             btnQuit.Margin = new Thickness(8, 0, 0, 0);

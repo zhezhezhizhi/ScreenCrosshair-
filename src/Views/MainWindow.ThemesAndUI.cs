@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Text;
+using System.Windows.Markup;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
@@ -243,6 +245,7 @@ namespace CrosshairMaster.Views
             ApplyComboBoxTheming(_cboPreviewBg);
             ApplyComboBoxTheming(_cboDotShape);
             ApplyComboBoxTheming(_cboThemePresets);
+            ApplyScrollBarTheming();
 
             foreach (TextBlock header in _sectionHeaders)
             {
@@ -315,7 +318,7 @@ namespace CrosshairMaster.Views
                 Background = CrosshairRenderer.ParseBrush(initialColor, 1.0),
                 VerticalAlignment = VerticalAlignment.Center,
                 Cursor = Cursors.Hand,
-                ToolTip = "点击直接调色"
+                ToolTip = "点击选择颜色"
             };
 
             TextBox txt = new TextBox
@@ -1065,7 +1068,7 @@ namespace CrosshairMaster.Views
                 Height = 22,
                 Width = 62,
                 Margin = new Thickness(4, 0, 0, 0),
-                ToolTip = "支持直接输入3位小数(按Enter生效)；在输入框上滑动鼠标滚轮可微调(按住Ctrl更精细)"
+                ToolTip = "支持直接输入数值 (按回车生效)，可滑动滚轮微调"
             };
             RegisterThemedInput(txtVal);
 
@@ -1159,6 +1162,155 @@ namespace CrosshairMaster.Views
         {
             e.Cancel = true;
             Hide();
+        }
+    
+        // ======================= 现代扁平极简滚动条 UI & 禁用原生右键菜单 =======================
+        private void ApplyScrollBarTheming()
+        {
+            try
+            {
+                Style svStyle = new Style(typeof(ScrollViewer));
+                svStyle.Setters.Add(new Setter(Control.ContextMenuProperty, null));
+                svStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+                svStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+                this.Resources[typeof(ScrollViewer)] = svStyle;
+
+                string accentHex = _config.ThemeAccentHex ?? "#0A84FF";
+                string xaml = string.Format(@"
+<ResourceDictionary xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+                    xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+                    xmlns:primitives=""clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"">
+
+    <Style x:Key=""ScrollBarPageButton"" TargetType=""{{x:Type RepeatButton}}"">
+        <Setter Property=""OverridesDefaultStyle"" Value=""True"" />
+        <Setter Property=""Background"" Value=""Transparent"" />
+        <Setter Property=""Focusable"" Value=""False"" />
+        <Setter Property=""IsTabStop"" Value=""False"" />
+        <Setter Property=""ContextMenu"" Value=""{{x:Null}}"" />
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""{{x:Type RepeatButton}}"">
+                    <Rectangle Fill=""Transparent"" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key=""ScrollBarThumbVertical"" TargetType=""{{x:Type Thumb}}"">
+        <Setter Property=""OverridesDefaultStyle"" Value=""True"" />
+        <Setter Property=""IsTabStop"" Value=""False"" />
+        <Setter Property=""ContextMenu"" Value=""{{x:Null}}"" />
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""{{x:Type Thumb}}"">
+                    <Border x:Name=""thumbBorder""
+                            Background=""#48484A""
+                            CornerRadius=""3.5""
+                            Margin=""1,2,1,2"" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""IsMouseOver"" Value=""True"">
+                            <Setter TargetName=""thumbBorder"" Property=""Background"" Value=""#636366"" />
+                        </Trigger>
+                        <Trigger Property=""IsDragging"" Value=""True"">
+                            <Setter TargetName=""thumbBorder"" Property=""Background"" Value=""{0}"" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key=""ScrollBarThumbHorizontal"" TargetType=""{{x:Type Thumb}}"">
+        <Setter Property=""OverridesDefaultStyle"" Value=""True"" />
+        <Setter Property=""IsTabStop"" Value=""False"" />
+        <Setter Property=""ContextMenu"" Value=""{{x:Null}}"" />
+        <Setter Property=""Template"">
+            <Setter.Value>
+                <ControlTemplate TargetType=""{{x:Type Thumb}}"">
+                    <Border x:Name=""thumbBorder""
+                            Background=""#48484A""
+                            CornerRadius=""3.5""
+                            Margin=""2,1,2,1"" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property=""IsMouseOver"" Value=""True"">
+                            <Setter TargetName=""thumbBorder"" Property=""Background"" Value=""#636366"" />
+                        </Trigger>
+                        <Trigger Property=""IsDragging"" Value=""True"">
+                            <Setter TargetName=""thumbBorder"" Property=""Background"" Value=""{0}"" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType=""{{x:Type ScrollBar}}"">
+        <Setter Property=""SnapsToDevicePixels"" Value=""True"" />
+        <Setter Property=""OverridesDefaultStyle"" Value=""True"" />
+        <Setter Property=""ContextMenu"" Value=""{{x:Null}}"" />
+        <Style.Triggers>
+            <Trigger Property=""Orientation"" Value=""Vertical"">
+                <Setter Property=""Width"" Value=""7"" />
+                <Setter Property=""Height"" Value=""Auto"" />
+                <Setter Property=""Template"">
+                    <Setter.Value>
+                        <ControlTemplate TargetType=""{{x:Type ScrollBar}}"">
+                            <Grid Background=""Transparent"" ContextMenu=""{{x:Null}}"">
+                                <Track x:Name=""PART_Track"" IsDirectionReversed=""True"">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Style=""{{StaticResource ScrollBarPageButton}}"" Command=""primitives:ScrollBar.PageUpCommand"" />
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb Style=""{{StaticResource ScrollBarThumbVertical}}"" />
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Style=""{{StaticResource ScrollBarPageButton}}"" Command=""primitives:ScrollBar.PageDownCommand"" />
+                                    </Track.IncreaseRepeatButton>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property=""Orientation"" Value=""Horizontal"">
+                <Setter Property=""Width"" Value=""Auto"" />
+                <Setter Property=""Height"" Value=""7"" />
+                <Setter Property=""Template"">
+                    <Setter.Value>
+                        <ControlTemplate TargetType=""{{x:Type ScrollBar}}"">
+                            <Grid Background=""Transparent"" ContextMenu=""{{x:Null}}"">
+                                <Track x:Name=""PART_Track"" IsDirectionReversed=""False"">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Style=""{{StaticResource ScrollBarPageButton}}"" Command=""primitives:ScrollBar.PageLeftCommand"" />
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb Style=""{{StaticResource ScrollBarThumbHorizontal}}"" />
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Style=""{{StaticResource ScrollBarPageButton}}"" Command=""primitives:ScrollBar.PageRightCommand"" />
+                                    </Track.IncreaseRepeatButton>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
+", accentHex);
+
+                using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xaml)))
+                {
+                    ResourceDictionary dict = (ResourceDictionary)XamlReader.Load(ms);
+                    this.Resources.MergedDictionaries.Add(dict);
+                    if (dict.Contains(typeof(ScrollBar)))
+                    {
+                        this.Resources[typeof(ScrollBar)] = dict[typeof(ScrollBar)];
+                    }
+                }
+            }
+            catch { }
         }
     }
 }

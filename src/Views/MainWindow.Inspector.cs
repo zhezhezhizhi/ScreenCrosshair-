@@ -56,19 +56,19 @@ namespace CrosshairMaster.Views
 
         private string GetModeDisplay(string mode)
         {
-            if (mode == "SolidHorizontal") return "贯通实心横线 ⭐";
-            if (mode == "SolidVertical") return "贯通实心竖线 ⭐";
-            if (mode == "SolidCross") return "贯通实心十字 ⭐";
-            if (mode == "HorizontalOnly") return "分段仅横线";
-            if (mode == "VerticalOnly") return "分段仅竖线";
-            if (mode == "XCross") return "斜十字 ⭐";
-            if (mode == "Chevron") return "三角箭标 ⭐";
-            if (mode == "TShape") return "T字";
-            if (mode == "DotOnly") return "中心点 ⭐";
-            if (mode == "CircleOnly") return "纯圆圈 ⭐";
-            if (mode == "Brackets") return "瞄框";
-            if (mode == "CustomImage") return "自定义图片准星 ⭐";
-            return "全十字";
+            if (mode == "SolidHorizontal") return "贯通横线";
+            if (mode == "SolidVertical") return "贯通竖线";
+            if (mode == "SolidCross") return "贯通十字";
+            if (mode == "HorizontalOnly") return "仅水平线";
+            if (mode == "VerticalOnly") return "仅垂直线";
+            if (mode == "XCross") return "斜十字";
+            if (mode == "Chevron") return "三角箭标";
+            if (mode == "TShape") return "T型";
+            if (mode == "DotOnly") return "中心点";
+            if (mode == "CircleOnly") return "圆圈";
+            if (mode == "Brackets") return "方框";
+            if (mode == "CustomImage") return "自定义图片";
+            return "标准十字";
         }
 
         public void RefreshLayerList()
@@ -129,7 +129,7 @@ namespace CrosshairMaster.Views
                 StackPanel actionPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
                 int currentIndex = i;
 
-                Button btnSaveToGroup = CreateMiniButton("→存入组", "将此准星存入当前方案组", NeutralBtnColor);
+                Button btnSaveToGroup = CreateMiniButton("存入方案", "保存到当前方案", NeutralBtnColor);
                 btnSaveToGroup.Width = 52;
                 btnSaveToGroup.Click += (s, e) =>
                 {
@@ -140,8 +140,8 @@ namespace CrosshairMaster.Views
                     if (_selectedGroup != null)
                     {
                         string customName = Microsoft.VisualBasic.Interaction.InputBox(
-                            string.Format("请输入保存至方案组【{0}】的准星名称:", _selectedGroup.Name),
-                            "存入方案组 - 自定义名称 (v7.2)",
+                            string.Format("请输入准星在方案「{0}」中的名称:", _selectedGroup.Name),
+                            "保存至方案",
                             layer.Name);
                         if (string.IsNullOrEmpty(customName) || string.IsNullOrEmpty(customName.Trim()))
                         {
@@ -153,7 +153,7 @@ namespace CrosshairMaster.Views
                         _selectedGroup.Layers.Add(savedLayer);
                         RefreshGroupList();
                         _config.Save();
-                        MessageBox.Show(string.Format("已将【{0}】成功存入方案组【{1}】！", savedLayer.Name, _selectedGroup.Name), "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(string.Format("已保存至方案「{0}」", _selectedGroup.Name), "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 };
 
@@ -237,7 +237,7 @@ namespace CrosshairMaster.Views
             if (m == "CustomImage" && _customImageBox != null)
             {
                 _customImageBox.Visibility = Visibility.Visible;
-                _txtCustomImagePath.Text = !string.IsNullOrEmpty(_selectedLayer.CustomImagePath) ? _selectedLayer.CustomImagePath : "(暂未选择图片文件)";
+                _txtCustomImagePath.Text = !string.IsNullOrEmpty(_selectedLayer.CustomImagePath) ? _selectedLayer.CustomImagePath : "(未选择图片)";
                 if (_chkLockAspectRatio != null)
                 {
                     _chkLockAspectRatio.IsChecked = _selectedLayer.LockAspectRatio;
@@ -555,7 +555,7 @@ namespace CrosshairMaster.Views
         {
             if (_statusBadge != null)
             {
-                _statusBadge.Text = _config.OverlayEnabled ? string.Format("● 准星运行中 ({0})", _config.ToggleHotKeyName) : string.Format("○ 准星已暂停 ({0})", _config.ToggleHotKeyName);
+                _statusBadge.Text = _config.OverlayEnabled ? string.Format("● 准星开启 ({0})", _config.ToggleHotKeyName) : string.Format("○ 准星关闭 ({0})", _config.ToggleHotKeyName);
                 _statusBadge.Foreground = _config.OverlayEnabled ? new SolidColorBrush(Color.FromRgb(52, 199, 89)) : new SolidColorBrush(Color.FromRgb(142, 142, 147));
             }
             if (_btnToggleOverlay != null)
@@ -565,11 +565,11 @@ namespace CrosshairMaster.Views
             }
             if (_txtHkOverlayHint != null)
             {
-                _txtHkOverlayHint.Text = string.Format("【{0}】游戏内一键显隐准星 | 【方向键】微调坐标", _config.ToggleHotKeyName);
+                _txtHkOverlayHint.Text = string.Format("快捷键: {0} 开关准星 | 方向键微调坐标", _config.ToggleHotKeyName);
             }
             if (_txtHkSettingsHint != null)
             {
-                _txtHkSettingsHint.Text = string.Format("【{0}】游戏内一键呼出/隐藏设置面板 (在设置页可自定义按键)", _config.SettingsHotKeyName);
+                _txtHkSettingsHint.Text = string.Format("快捷键: {0} 呼出/隐藏面板 (可在设置页修改)", _config.SettingsHotKeyName);
             }
         }
 

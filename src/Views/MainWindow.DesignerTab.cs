@@ -53,13 +53,13 @@ namespace CrosshairMaster.Views
             
             TextBlock txtLayerTitle = new TextBlock
             {
-                Text = "当前生效准星图层 (屏幕渲染)",
+                Text = "准星图层",
                 FontWeight = FontWeights.Bold,
                 FontSize = 12.5,
                 Foreground = Brushes.White,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            Button btnAddLayer = CreateThemedActionButton("+ 添加图层", 85, 26);
+            Button btnAddLayer = CreateThemedActionButton("+ 新建图层", 80, 26);
             btnAddLayer.Click += (s, e) => AddNewLayer();
 
             Grid.SetColumn(txtLayerTitle, 0);
@@ -94,7 +94,7 @@ namespace CrosshairMaster.Views
 
             TextBlock txtGroupTitle = new TextBlock
             {
-                Text = "📁 自定义准星方案组",
+                Text = "方案组预设",
                 FontWeight = FontWeights.Bold,
                 FontSize = 12,
                 Foreground = _themeAccentBrush,
@@ -103,15 +103,15 @@ namespace CrosshairMaster.Views
             _sectionHeaders.Add(txtGroupTitle);
 
             StackPanel groupBtns = new StackPanel { Orientation = Orientation.Horizontal };
-            Button btnNewGroup = CreateMiniButton("+新建组", "新建自定义方案组", NeutralBtnColor);
+            Button btnNewGroup = CreateMiniButton("新建", "新建方案组", NeutralBtnColor);
             btnNewGroup.Width = 52;
             btnNewGroup.Click += (s, e) => CreateNewGroup();
 
-            Button btnRenameGroup = CreateMiniButton("✎改名", "修改当前组名", NeutralBtnColor);
+            Button btnRenameGroup = CreateMiniButton("改名", "重命名当前方案", NeutralBtnColor);
             btnRenameGroup.Width = 42;
             btnRenameGroup.Click += (s, e) => RenameCurrentGroup();
 
-            Button btnDelGroup = CreateMiniButton("✕删除", "删除当前方案组", DangerBtnColor);
+            Button btnDelGroup = CreateMiniButton("删除", "删除当前方案", DangerBtnColor);
             btnDelGroup.Width = 42;
             btnDelGroup.Click += (s, e) => DeleteCurrentGroup();
 
@@ -144,10 +144,10 @@ namespace CrosshairMaster.Views
             groupGrid.Children.Add(groupLayersScroll);
 
             StackPanel groupFlowPanel = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
-            Button btnApplyGroup = CreateThemedActionButton("⚡ 应用此组全部准星 (载入屏幕)", 260, 26);
+            Button btnApplyGroup = CreateThemedActionButton("应用方案到屏幕", 260, 26);
             btnApplyGroup.Click += (s, e) => ApplyGroupToScreen();
 
-            Button btnSaveToGroup = CreateButton("💾 将当前屏幕所有准星存入此组", 260, 24, NeutralBtnColor);
+            Button btnSaveToGroup = CreateButton("将当前屏幕准星存入该方案", 260, 24, NeutralBtnColor);
             btnSaveToGroup.Margin = new Thickness(0, 4, 0, 0);
             btnSaveToGroup.Click += (s, e) => SaveScreenLayersToCurrentGroup();
 
@@ -182,7 +182,7 @@ namespace CrosshairMaster.Views
 
             TextBlock txtPreviewTitle = new TextBlock
             {
-                Text = "准星物理像素实时预览 (支持鼠标拖拽)",
+                Text = "准星预览",
                 FontWeight = FontWeights.Bold,
                 FontSize = 12.5,
                 Foreground = Brushes.White,
@@ -191,14 +191,14 @@ namespace CrosshairMaster.Views
             Grid.SetColumn(txtPreviewTitle, 0);
 
             StackPanel bgSelectPanel = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
-            TextBlock lblBg = new TextBlock { Text = "测试背景: ", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+            TextBlock lblBg = new TextBlock { Text = "背景: ", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
             _cboPreviewBg = new ComboBox { Height = 24, Width = 115, FontSize = 11 };
-            _cboPreviewBg.Items.Add("深黑纯色");
-            _cboPreviewBg.Items.Add("透明棋盘格");
-            _cboPreviewBg.Items.Add("沙漠灰(CF/CS)");
-            _cboPreviewBg.Items.Add("雪地亮天(高光)");
-            _cboPreviewBg.Items.Add("暗夜暗光");
-            _cboPreviewBg.Items.Add("自定义截图...");
+            _cboPreviewBg.Items.Add("纯黑");
+            _cboPreviewBg.Items.Add("棋盘格");
+            _cboPreviewBg.Items.Add("灰色场景");
+            _cboPreviewBg.Items.Add("高亮背景");
+            _cboPreviewBg.Items.Add("暗光场景");
+            _cboPreviewBg.Items.Add("自定义图片...");
             _cboPreviewBg.SelectedIndex = GetBgComboIndex(_config.PreviewBackground);
             _cboPreviewBg.SelectionChanged += OnPreviewBgChanged;
             RegisterThemedInput(_cboPreviewBg);
@@ -248,14 +248,14 @@ namespace CrosshairMaster.Views
 
             TextBlock lblZoom = new TextBlock
             {
-                Text = "微观像素放大观察 (每个格子为1物理像素):",
+                Text = "预览缩放:",
                 Foreground = Brushes.White,
                 FontSize = 11,
                 VerticalAlignment = VerticalAlignment.Center
             };
             _txtZoomVal = new TextBlock
             {
-                Text = string.Format("{0}x (看像素点)", _config.PreviewZoom),
+                Text = string.Format("{0}x", _config.PreviewZoom),
                 Foreground = _themeAccentBrush,
                 FontWeight = FontWeights.Bold,
                 FontSize = 11,
@@ -288,7 +288,7 @@ namespace CrosshairMaster.Views
                 btnZ.Click += (s, e) =>
                 {
                     _config.PreviewZoom = curZ;
-                    _txtZoomVal.Text = string.Format("{0}x (看像素点)", curZ);
+                    _txtZoomVal.Text = string.Format("{0}x", curZ);
                     UpdateZoomPillsStyles(_zoomPillsPanel);
                     UpdatePreview();
                 };
@@ -302,7 +302,7 @@ namespace CrosshairMaster.Views
 
             _chkPixelGrid = new CheckBox
             {
-                Content = "显示物理像素网格",
+                Content = "显示网格线",
                 IsChecked = _config.ShowPixelGrid,
                 Foreground = Brushes.White,
                 FontSize = 11,
@@ -324,7 +324,7 @@ namespace CrosshairMaster.Views
 
             _btnPreviewSingle = new Button
             {
-                Content = "🎯 仅选中的准星",
+                Content = "当前图层",
                 Height = 22,
                 Margin = new Thickness(0, 0, 2, 0),
                 Padding = new Thickness(7, 0, 7, 0),
@@ -342,7 +342,7 @@ namespace CrosshairMaster.Views
 
             _btnPreviewAll = new Button
             {
-                Content = "👥 全部准星",
+                Content = "全部图层",
                 Height = 22,
                 Margin = new Thickness(2, 0, 0, 0),
                 Padding = new Thickness(7, 0, 7, 0),
@@ -382,7 +382,7 @@ namespace CrosshairMaster.Views
 
             TextBlock txtCalibTitle = new TextBlock
             {
-                Text = "🎯 准星坐标校准 (支持鼠标拖拽 / 方向键微调)",
+                Text = "坐标校准",
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 11.5,
@@ -401,7 +401,7 @@ namespace CrosshairMaster.Views
 
             _txtLockStatus = new TextBlock
             {
-                Text = _config.IsPositionLocked ? "【已锁定防误触】无法拖动，请先点击右上角解锁" : "【已解锁】可在上方预览框直接拖动，或点击下方按钮在屏幕上直接拖拽",
+                Text = _config.IsPositionLocked ? "坐标已锁定，点击右侧按钮解锁" : "坐标已解锁：可在上方预览框或屏幕上直接拖动",
                 Foreground = _config.IsPositionLocked ? new SolidColorBrush(Color.FromRgb(255, 120, 120)) : new SolidColorBrush(Color.FromRgb(142, 142, 147)),
                 FontSize = 10,
                 Margin = new Thickness(0, 2, 0, 4)
@@ -409,10 +409,10 @@ namespace CrosshairMaster.Views
             offsetPanel.Children.Add(_txtLockStatus);
 
             // ⭐ USER REQUEST: 屏幕直接拖拽按钮！
-            Button btnScreenDrag = CreateButton("🖥️ 进入屏幕直接拖拽模式", double.NaN, 28, NeutralBtnColor);
+            Button btnScreenDrag = CreateButton("屏幕拖拽定位", double.NaN, 28, NeutralBtnColor);
             btnScreenDrag.HorizontalAlignment = HorizontalAlignment.Stretch;
             btnScreenDrag.Margin = new Thickness(0, 2, 0, 6);
-            btnScreenDrag.ToolTip = "点击后将在物理屏幕上出现可拖拽标定手柄，直接按住拖动到枪口中心，按ESC或点击完成并锁定！";
+            btnScreenDrag.ToolTip = "在屏幕上直接拖动准星位置，按 ESC 或 Enter 退出并保存";
             btnScreenDrag.Click += (s, e) =>
             {
                 if (_selectedLayer != null)
@@ -564,7 +564,7 @@ namespace CrosshairMaster.Views
             yGrid.Children.Add(yBtns);
             offsetPanel.Children.Add(yGrid);
 
-            Button btnResetOffset = CreateButton("一键居中归零 (X: 0.000, Y: 0.000)", double.NaN, 24, NeutralBtnColor);
+            Button btnResetOffset = CreateButton("重置坐标到中心 (0, 0)", double.NaN, 24, NeutralBtnColor);
             btnResetOffset.HorizontalAlignment = HorizontalAlignment.Stretch;
             btnResetOffset.Margin = new Thickness(0, 4, 0, 0);
             btnResetOffset.Click += (s, e) =>
@@ -596,15 +596,15 @@ namespace CrosshairMaster.Views
             _lblScreenResInfo = new TextBlock
             {
                 Text = initMetrics.DpiPercent != 100
-                    ? string.Format("🖥️ 屏幕: {0}×{1} (物理) · {2}% 缩放 (中心点: {3}, {4})",
+                    ? string.Format("屏幕: {0}×{1} | 缩放: {2}% (中心: {3}, {4})",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.DpiPercent, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY)
-                    : string.Format("🖥️ 屏幕: {0}×{1} (0,0 居中点: {2}, {3})",
+                    : string.Format("屏幕: {0}×{1} (中心: {2}, {3})",
                         initMetrics.PhysicalWidth, initMetrics.PhysicalHeight, initMetrics.PhysicalCenterX, initMetrics.PhysicalCenterY),
                 Foreground = _themeSubTextBrush ?? Brushes.White,
                 FontSize = 10.5,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            Button btnRefreshRes = CreateButton("🔄 检查/刷新分辨率", double.NaN, 22, NeutralBtnColor);
+            Button btnRefreshRes = CreateButton("刷新分辨率", double.NaN, 22, NeutralBtnColor);
             btnRefreshRes.FontSize = 10;
             btnRefreshRes.Padding = new Thickness(8, 0, 8, 0);
             btnRefreshRes.Click += (s, e) => CheckAndRefreshResolution(true);
@@ -626,14 +626,14 @@ namespace CrosshairMaster.Views
             StackPanel hkStack = new StackPanel();
             _txtHkOverlayHint = new TextBlock
             {
-                Text = string.Format("【{0}】游戏内一键显隐准星 | 【方向键】微调坐标", _config.ToggleHotKeyName),
+                Text = string.Format("快捷键: {0} 开关准星 | 方向键微调坐标", _config.ToggleHotKeyName),
                 Foreground = _themeAccentBrush,
                 FontSize = 10.5,
                 FontWeight = FontWeights.SemiBold
             };
             _txtHkSettingsHint = new TextBlock
             {
-                Text = string.Format("【{0}】游戏内一键呼出/隐藏设置面板 (在设置页可自定义按键)", _config.SettingsHotKeyName),
+                Text = string.Format("快捷键: {0} 呼出/隐藏面板 (可在设置页修改)", _config.SettingsHotKeyName),
                 Foreground = Brushes.White,
                 FontSize = 10,
                 Margin = new Thickness(0, 2, 0, 0)
@@ -705,19 +705,19 @@ namespace CrosshairMaster.Views
             modeGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             TextBlock lblMode = new TextBlock { Text = "线条模式:", Foreground = _themeAccentBrush, FontWeight = FontWeights.Bold, FontSize = 11.5, VerticalAlignment = VerticalAlignment.Center };
             _cboMode = new ComboBox { Height = 26 };
-            _cboMode.Items.Add("贯通一体实心横线 (Solid Horizontal - 无中缝) ⭐");
-            _cboMode.Items.Add("贯通一体实心竖线 (Solid Vertical - 无中缝) ⭐");
-            _cboMode.Items.Add("贯通一体实心十字 (Solid Cross - 无中缝) ⭐");
-            _cboMode.Items.Add("分段经典十字 (Both)");
-            _cboMode.Items.Add("分段仅横线 (Horizontal Only)");
-            _cboMode.Items.Add("分段仅竖线 (Vertical Only)");
-            _cboMode.Items.Add("斜十字 / 交叉准星 (X-Cross) ⭐");
-            _cboMode.Items.Add("三角人字箭标 (Chevron) ⭐");
-            _cboMode.Items.Add("T字准星 (无上臂)");
-            _cboMode.Items.Add("纯中心点 (Dot Only) ⭐");
-            _cboMode.Items.Add("纯圆圈 (Circle Only) ⭐");
-            _cboMode.Items.Add("战术括号瞄框 (Brackets)");
-            _cboMode.Items.Add("自定义图片准星 (Custom PNG Image) ⭐");
+            _cboMode.Items.Add("贯通横线");
+            _cboMode.Items.Add("贯通竖线");
+            _cboMode.Items.Add("贯通十字");
+            _cboMode.Items.Add("标准十字");
+            _cboMode.Items.Add("仅水平线");
+            _cboMode.Items.Add("仅垂直线");
+            _cboMode.Items.Add("斜十字 (X)");
+            _cboMode.Items.Add("三角箭标");
+            _cboMode.Items.Add("T型准星");
+            _cboMode.Items.Add("中心点");
+            _cboMode.Items.Add("圆圈");
+            _cboMode.Items.Add("方框瞄具");
+            _cboMode.Items.Add("自定义图片");
             RegisterThemedInput(_cboMode);
             _cboMode.SelectionChanged += OnLineModeChanged;
             Grid.SetColumn(lblMode, 0);
@@ -733,12 +733,12 @@ namespace CrosshairMaster.Views
             _customImageBox.Visibility = Visibility.Collapsed;
             StackPanel imageStack = new StackPanel();
 
-            TextBlock imgHeader = new TextBlock { Text = "🖼️ 自定义图片准星设置 (支持PNG带透明通道)", FontWeight = FontWeights.Bold, Foreground = _themeAccentBrush, FontSize = 11 };
+            TextBlock imgHeader = new TextBlock { Text = "图片准星设置", FontWeight = FontWeights.Bold, Foreground = _themeAccentBrush, FontSize = 11 };
             _sectionHeaders.Add(imgHeader);
             imageStack.Children.Add(imgHeader);
 
             StackPanel imgBtnRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4) };
-            Button btnSelectImage = CreateButton("📂 浏览选择准星图片 (PNG/JPG/ICO)...", 240, 26, NeutralBtnColor);
+            Button btnSelectImage = CreateButton("选择图片文件...", 150, 26, NeutralBtnColor);
             btnSelectImage.Click += (s, e) =>
             {
                 OpenFileDialog ofd = new OpenFileDialog();
@@ -765,13 +765,13 @@ namespace CrosshairMaster.Views
             imgBtnRow.Children.Add(btnSelectImage);
             imageStack.Children.Add(imgBtnRow);
 
-            _txtCustomImagePath = new TextBlock { Text = "(暂未选择图片文件)", Foreground = Brushes.White, FontSize = 10, Margin = new Thickness(0, 0, 0, 4) };
+            _txtCustomImagePath = new TextBlock { Text = "(未选择图片)", Foreground = Brushes.White, FontSize = 10, Margin = new Thickness(0, 0, 0, 4) };
             imageStack.Children.Add(_txtCustomImagePath);
 
             // ⭐ USER REQUEST: 纵横比锁定功能
             _chkLockAspectRatio = new CheckBox
             {
-                Content = "🔒 锁定图片宽高比 (取消勾选可自由拉伸/压扁压缩)",
+                Content = "锁定宽高比例",
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 11,
@@ -852,13 +852,13 @@ namespace CrosshairMaster.Views
             inspPanel.Children.Add(_customImageBox);
 
             // 3. Line Sliders (⭐ USER REQUEST: 间隙支持负数 -50~300, 长度可调到500, 全部选项支持3位小数)
-            inspPanel.Children.Add(CreateSectionHeader("线条尺寸参数 (全支持3位小数精确微调)"));
-            inspPanel.Children.Add(CreateSliderRow("线条长度/半长 (px):", 0, 500, 10, out _sliderLength, out _txtLengthVal, val => { if (_selectedLayer != null) { _selectedLayer.Length = val; UpdateAllViews(); } }, true));
+            inspPanel.Children.Add(CreateSectionHeader("线条尺寸"));
+            inspPanel.Children.Add(CreateSliderRow("线条长度 (px):", 0, 500, 10, out _sliderLength, out _txtLengthVal, val => { if (_selectedLayer != null) { _selectedLayer.Length = val; UpdateAllViews(); } }, true));
             inspPanel.Children.Add(CreateSliderRow("线条粗细 (px):", 0.1, 60, 2, out _sliderThickness, out _txtThicknessVal, val => { if (_selectedLayer != null) { _selectedLayer.Thickness = val; UpdateAllViews(); } }, true));
-            inspPanel.Children.Add(CreateSliderRow("中心间隙 (可填负数! px):", -50, 300, 5, out _sliderGap, out _txtGapVal, val => { if (_selectedLayer != null) { _selectedLayer.Gap = val; UpdateAllViews(); } }, true));
+            inspPanel.Children.Add(CreateSliderRow("中心间隙 (px):", -50, 300, 5, out _sliderGap, out _txtGapVal, val => { if (_selectedLayer != null) { _selectedLayer.Gap = val; UpdateAllViews(); } }, true));
 
             // ⭐ USER REQUEST: 可以设置准星旋转 (0.000° ~ 360.000° 次像素平滑抗锯齿旋转)
-            inspPanel.Children.Add(CreateSectionHeader("准星旋转角度 (0~360° 次像素平滑抗锯齿)"));
+            inspPanel.Children.Add(CreateSectionHeader("旋转角度"));
             inspPanel.Children.Add(CreateSliderRow("准星旋转 (°):", 0, 360, 0, out _sliderRotation, out _txtRotationVal, val =>
             {
                 if (_selectedLayer != null)
@@ -893,7 +893,7 @@ namespace CrosshairMaster.Views
             inspPanel.Children.Add(CreateSliderRow("不透明度 (%):", 0, 100, 100, out _sliderAlpha, out _txtAlphaVal, val => { if (_selectedLayer != null) { _selectedLayer.Alpha = val / 100.0; UpdateAllViews(); } }, true));
 
             // 4. Color Palette (⭐ USER REQUEST: 直接加入系统级调色板按钮！)
-            inspPanel.Children.Add(CreateSectionHeader("主线条颜色 (支持一键调色板)"));
+            inspPanel.Children.Add(CreateSectionHeader("线条颜色"));
             StackPanel colorRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 4) };
             colorRow.Children.Add(CreatePaletteButton("#00FF00"));
             colorRow.Children.Add(CreatePaletteButton("#FF2222"));
@@ -933,15 +933,15 @@ namespace CrosshairMaster.Views
             inspPanel.Children.Add(colorRow);
 
             // 5. Outline Settings
-            inspPanel.Children.Add(CreateSectionHeader("黑色高对比度轮廓 (防背景吃准星)"));
-            _chkOutline = new CheckBox { Content = "开启黑色描边轮廓", Foreground = Brushes.White, Margin = new Thickness(0, 2, 0, 2) };
+            inspPanel.Children.Add(CreateSectionHeader("外描边轮廓"));
+            _chkOutline = new CheckBox { Content = "启用外描边", Foreground = Brushes.White, Margin = new Thickness(0, 2, 0, 2) };
             _chkOutline.Checked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowOutline = true; UpdateAllViews(); } };
             _chkOutline.Unchecked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowOutline = false; UpdateAllViews(); } };
             inspPanel.Children.Add(_chkOutline);
             inspPanel.Children.Add(CreateSliderRow("描边粗细 (px):", 0.1, 20, 1, out _sliderOutline, out _txtOutlineVal, val => { if (_selectedLayer != null) { _selectedLayer.OutlineThickness = val; UpdateAllViews(); } }, true));
 
             // 6. Center Dot Settings
-            inspPanel.Children.Add(CreateSectionHeader("中心瞄准点设置 (物理级像素对齐)"));
+            inspPanel.Children.Add(CreateSectionHeader("中心瞄点"));
             _chkDot = new CheckBox { Content = "启用中心点", Foreground = Brushes.White, Margin = new Thickness(0, 2, 0, 2) };
             _chkDot.Checked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowDot = true; UpdateAllViews(); } };
             _chkDot.Unchecked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowDot = false; UpdateAllViews(); } };
@@ -950,10 +950,10 @@ namespace CrosshairMaster.Views
             Grid dotShapeGrid = new Grid { Margin = new Thickness(0, 2, 0, 2) };
             dotShapeGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(110) });
             dotShapeGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            TextBlock lblDotShape = new TextBlock { Text = "点形状模式:", Foreground = _themeAccentBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
+            TextBlock lblDotShape = new TextBlock { Text = "形状:", Foreground = _themeAccentBrush, FontSize = 11, VerticalAlignment = VerticalAlignment.Center };
             _cboDotShape = new ComboBox { Height = 24 };
-            _cboDotShape.Items.Add("方形像素点 (Square - 推荐)");
-            _cboDotShape.Items.Add("抗锯齿圆点 (Circle)");
+            _cboDotShape.Items.Add("方形");
+            _cboDotShape.Items.Add("圆形");
             _cboDotShape.SelectionChanged += (s, e) =>
             {
                 if (!_isUpdatingUi && _selectedLayer != null)
@@ -969,7 +969,7 @@ namespace CrosshairMaster.Views
             dotShapeGrid.Children.Add(_cboDotShape);
             inspPanel.Children.Add(dotShapeGrid);
 
-            inspPanel.Children.Add(CreateSliderRow("点尺寸 (px):", 0.1, 60, 2, out _sliderDotSize, out _txtDotSizeVal, val => { if (_selectedLayer != null) { _selectedLayer.DotSize = val; UpdateAllViews(); } }, true));
+            inspPanel.Children.Add(CreateSliderRow("瞄点大小 (px):", 0.1, 60, 2, out _sliderDotSize, out _txtDotSizeVal, val => { if (_selectedLayer != null) { _selectedLayer.DotSize = val; UpdateAllViews(); } }, true));
 
             StackPanel dotColorRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 4) };
             dotColorRow.Children.Add(new TextBlock { Text = "点颜色: ", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
@@ -1014,13 +1014,13 @@ namespace CrosshairMaster.Views
             inspPanel.Children.Add(dotColorRow);
 
             // 7. Center Circle Settings
-            inspPanel.Children.Add(CreateSectionHeader("中心瞄准圆环设置"));
+            inspPanel.Children.Add(CreateSectionHeader("中心圆环"));
             _chkCircle = new CheckBox { Content = "启用中心圆环", Foreground = Brushes.White, Margin = new Thickness(0, 2, 0, 2) };
             _chkCircle.Checked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowCircle = true; UpdateAllViews(); } };
             _chkCircle.Unchecked += (s, e) => { if (!_isUpdatingUi && _selectedLayer != null) { _selectedLayer.ShowCircle = false; UpdateAllViews(); } };
             inspPanel.Children.Add(_chkCircle);
             inspPanel.Children.Add(CreateSliderRow("圆环半径 (px):", 0.5, 500, 20, out _sliderCircleRadius, out _txtCircleRadiusVal, val => { if (_selectedLayer != null) { _selectedLayer.CircleRadius = val; UpdateAllViews(); } }, true));
-            inspPanel.Children.Add(CreateSliderRow("圆环粗细 (px):", 0.1, 50, 2, out _sliderCircleThick, out _txtCircleThickVal, val => { if (_selectedLayer != null) { _selectedLayer.CircleThickness = val; UpdateAllViews(); } }, true));
+            inspPanel.Children.Add(CreateSliderRow("圆环线宽 (px):", 0.1, 50, 2, out _sliderCircleThick, out _txtCircleThickVal, val => { if (_selectedLayer != null) { _selectedLayer.CircleThickness = val; UpdateAllViews(); } }, true));
 
             StackPanel circleColorRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 6) };
             circleColorRow.Children.Add(new TextBlock { Text = "圆环颜色: ", Foreground = Brushes.White, FontSize = 11, VerticalAlignment = VerticalAlignment.Center });
@@ -1060,16 +1060,16 @@ namespace CrosshairMaster.Views
             inspPanel.Children.Add(circleColorRow);
 
             // 8. Mouse Button Auto-Hide for Selected Layer (⭐ USER REQUEST: 准星调整里只对勾选的单一图层隐藏)
-            inspPanel.Children.Add(CreateSectionHeader("鼠标按键动态隐藏 (仅对当前图层生效)"));
+            inspPanel.Children.Add(CreateSectionHeader("按键自动隐蔽"));
             StackPanel layerMouseStack = new StackPanel { Margin = new Thickness(0, 2, 0, 8) };
 
             _chkLayerHideOnLeftMouse = new CheckBox
             {
-                Content = "按住鼠标左键时隐藏此图层 (开火射击隐藏)",
+                Content = "开火时隐蔽 (按住鼠标左键)",
                 Foreground = Brushes.White,
                 FontSize = 11,
                 Margin = new Thickness(0, 2, 0, 4),
-                ToolTip = "按住鼠标左键开火射击时，仅自动隐藏当前选中的图层，其他未勾选图层正常显示"
+                ToolTip = "按住鼠标左键时临时隐藏此图层"
             };
             _chkLayerHideOnLeftMouse.Checked += (s, e) =>
             {
@@ -1093,11 +1093,11 @@ namespace CrosshairMaster.Views
 
             _chkLayerHideOnRightMouse = new CheckBox
             {
-                Content = "按住鼠标右键时隐藏此图层 (开镜瞄准隐藏)",
+                Content = "开镜时隐蔽 (按住鼠标右键)",
                 Foreground = Brushes.White,
                 FontSize = 11,
                 Margin = new Thickness(0, 2, 0, 4),
-                ToolTip = "按住鼠标右键开镜瞄准(ADS)时，仅自动隐藏当前选中的图层，其他未勾选图层正常显示"
+                ToolTip = "按住鼠标右键时临时隐藏此图层"
             };
             _chkLayerHideOnRightMouse.Checked += (s, e) =>
             {
@@ -1151,7 +1151,7 @@ namespace CrosshairMaster.Views
             {
                 if (_config.IsPositionLocked)
                 {
-                    _txtLockStatus.Text = "【提示】当前处于锁定状态！请先点击右上角“🔓坐标已解锁”解除锁定再拖拽。";
+                    _txtLockStatus.Text = "坐标已锁定，请先解锁。";
                     return;
                 }
 
@@ -1209,7 +1209,7 @@ namespace CrosshairMaster.Views
             }
             if (_txtLockStatus != null)
             {
-                _txtLockStatus.Text = _config.IsPositionLocked ? "【已锁定防误触】无法拖动，请先点击右上角解锁" : "【已解锁】可在上方预览框直接拖动，或点击下方按钮在屏幕上直接拖拽";
+                _txtLockStatus.Text = _config.IsPositionLocked ? "坐标已锁定，点击右侧按钮解锁" : "坐标已解锁：可在上方预览框或屏幕上直接拖动";
                 _txtLockStatus.Foreground = _config.IsPositionLocked ? new SolidColorBrush(Color.FromRgb(255, 105, 97)) : new SolidColorBrush(Color.FromRgb(142, 142, 147));
             }
         }
@@ -1251,7 +1251,7 @@ namespace CrosshairMaster.Views
                 int vk = KeyInterop.VirtualKeyFromKey(key);
                 _config.ToggleHotKeyVK = vk;
                 _config.ToggleHotKeyName = key.ToString();
-                _btnRecordOverlayKey.Content = string.Format("【{0}】点击更改", _config.ToggleHotKeyName);
+                _btnRecordOverlayKey.Content = string.Format("【{0}】点击修改", _config.ToggleHotKeyName);
                 _btnRecordOverlayKey.Background = new SolidColorBrush(NeutralBtnColor);
 
                 if (_hotKeyManager != null)
@@ -1269,7 +1269,7 @@ namespace CrosshairMaster.Views
                 int vk = KeyInterop.VirtualKeyFromKey(key);
                 _config.SettingsHotKeyVK = vk;
                 _config.SettingsHotKeyName = key.ToString();
-                _btnRecordSettingsKey.Content = string.Format("【{0}】点击更改", _config.SettingsHotKeyName);
+                _btnRecordSettingsKey.Content = string.Format("【{0}】点击修改", _config.SettingsHotKeyName);
                 _btnRecordSettingsKey.Background = new SolidColorBrush(NeutralBtnColor);
 
                 if (_hotKeyManager != null)

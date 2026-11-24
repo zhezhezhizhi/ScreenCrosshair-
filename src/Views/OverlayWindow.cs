@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -499,7 +499,7 @@ namespace CrosshairMaster.Views
             };
             TextBlock txtIcon = new TextBlock
             {
-                Text = "✛ 屏幕拖拽中",
+                Text = "拖拽定位",
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 11.5,
@@ -532,7 +532,7 @@ namespace CrosshairMaster.Views
             StackPanel hudStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
             TextBlock hudTip = new TextBlock
             {
-                Text = "🎯【物理屏幕准星直接标定】在屏幕任意位置按住鼠标左键即可拖拽准星到目标点 | 调整好后点击右侧 ➔",
+                Text = "按住鼠标左键拖动准星位置，调整完成后按 ESC 或点击右侧完成 ➔",
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
                 FontSize = 13,
@@ -541,7 +541,7 @@ namespace CrosshairMaster.Views
             };
             Button btnFinish = new Button
             {
-                Content = "🔒 完成并锁定 (ESC)",
+                Content = "完成定位 (ESC)",
                 Height = 32,
                 Padding = new Thickness(16, 0, 16, 0),
                 Background = new SolidColorBrush(Color.FromRgb(0, 180, 100)),

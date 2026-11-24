@@ -33,7 +33,7 @@ namespace CrosshairMaster
             _singleInstanceMutex = new Mutex(true, "ScreenCrosshair_v72_SingleInstance_Mutex", out isNewInstance);
             if (!isNewInstance)
             {
-                System.Windows.MessageBox.Show("ScreenCrosshair v7.2 已在运行中！\n可按快捷键【F10】呼出设置，或在屏幕右下角托盘查看。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show("ScreenCrosshair 已在运行中。\n快捷键：F10 呼出面板，F8 开关准星。", "ScreenCrosshair v7.2", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace CrosshairMaster
         private static void SetupTrayIcon(Application app, AppConfig config, OverlayWindow overlay, MainWindow mainWin)
         {
             _trayIcon = new NotifyIcon();
-            _trayIcon.Text = "ScreenCrosshair v7.2 (按F10调出面板)";
+            _trayIcon.Text = "ScreenCrosshair (按 F10 呼出)";
 
             // Extract icon from embedded application icon or fallback
             try
@@ -165,24 +165,24 @@ namespace CrosshairMaster
 
             ContextMenu menu = new ContextMenu();
 
-            MenuItem miShowSettings = new MenuItem("显示设置面板 (F10)", (s, e) =>
+            MenuItem miShowSettings = new MenuItem("显示面板 (F10)", (s, e) =>
             {
                 mainWin.ShowWindowAnimated();
             });
 
-            MenuItem miToggle = new MenuItem("开启 / 隐藏准星 (F8)", (s, e) =>
+            MenuItem miToggle = new MenuItem("开启/隐藏准星 (F8)", (s, e) =>
             {
                 mainWin.ToggleOverlay();
             });
 
-            MenuItem miRefreshRes = new MenuItem("刷新屏幕分辨率与准星居中", (s, e) =>
+            MenuItem miRefreshRes = new MenuItem("刷新分辨率", (s, e) =>
             {
                 mainWin.CheckAndRefreshResolution(true);
             });
 
             MenuItem miSep = new MenuItem("-");
 
-            MenuItem miExit = new MenuItem("退出软件", (s, e) =>
+            MenuItem miExit = new MenuItem("退出", (s, e) =>
             {
                 config.Save();
                 app.Shutdown();

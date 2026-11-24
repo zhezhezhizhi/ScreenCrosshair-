@@ -62,7 +62,7 @@ namespace CrosshairMaster.Views
             {
                 TextBlock emptyTip = new TextBlock
                 {
-                    Text = "(暂无方案组，点击上方[+新建组]创建)",
+                    Text = "(暂无方案，点击上方新建)",
                     Foreground = new SolidColorBrush(Color.FromRgb(140, 140, 160)),
                     FontSize = 10.5,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -97,7 +97,7 @@ namespace CrosshairMaster.Views
                     FontSize = 11.5,
                     FontWeight = FontWeights.SemiBold,
                     Cursor = Cursors.Hand,
-                    ToolTip = "双击可重命名此准星"
+                    ToolTip = "双击重命名"
                 };
                 name.MouseLeftButtonDown += (s, e) =>
                 {
@@ -114,14 +114,14 @@ namespace CrosshairMaster.Views
 
                 StackPanel btns = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
 
-                Button btnRenameInGroup = CreateMiniButton("✎改名", "自定义方案组内此准星名称", NeutralBtnColor);
+                Button btnRenameInGroup = CreateMiniButton("改名", "重命名准星", NeutralBtnColor);
                 btnRenameInGroup.Width = 46;
                 btnRenameInGroup.Click += (s, e) =>
                 {
                     RenameGroupLayer(layer);
                 };
 
-                Button btnImportToScreen = CreateMiniButton("+载入", "将此准星追加载入到当前屏幕", NeutralBtnColor);
+                Button btnImportToScreen = CreateMiniButton("添加", "添加到当前屏幕", NeutralBtnColor);
                 btnImportToScreen.Width = 44;
                 btnImportToScreen.Click += (s, e) =>
                 {
@@ -135,7 +135,7 @@ namespace CrosshairMaster.Views
                     _config.Save();
                 };
 
-                Button btnDelFromGroup = CreateMiniButton("✕", "从组中删除", DangerBtnColor);
+                Button btnDelFromGroup = CreateMiniButton("✕", "删除", DangerBtnColor);
                 btnDelFromGroup.Click += (s, e) =>
                 {
                     _selectedGroup.Layers.Remove(layer);
@@ -159,7 +159,7 @@ namespace CrosshairMaster.Views
         private void RenameGroupLayer(CrosshairLayer layer)
         {
             if (layer == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组中该准星的新名称:", "自定义准星名称 - ScreenCrosshair v7.2", layer.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入准星名称:", "重命名准星", layer.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 layer.Name = newName.Trim();
@@ -171,8 +171,8 @@ namespace CrosshairMaster.Views
         private void CreateNewGroup()
         {
             CrosshairGroup g = new CrosshairGroup();
-            string defName = string.Format("【方案组 #{0}】", _config.Groups.Count + 1);
-            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入新建方案组名称:", "新建方案组 - ScreenCrosshair v7.2", defName);
+            string defName = string.Format("方案 {0}", _config.Groups.Count + 1);
+            string input = Microsoft.VisualBasic.Interaction.InputBox("请输入方案名称:", "新建方案", defName);
             g.Name = (!string.IsNullOrEmpty(input) && !string.IsNullOrEmpty(input.Trim())) ? input.Trim() : defName;
             _config.Groups.Add(g);
             _selectedGroup = g;
@@ -183,7 +183,7 @@ namespace CrosshairMaster.Views
         private void RenameCurrentGroup()
         {
             if (_selectedGroup == null) return;
-            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案组新名称:", "方案组重命名 - ScreenCrosshair v7.2", _selectedGroup.Name);
+            string newName = Microsoft.VisualBasic.Interaction.InputBox("请输入方案名称:", "重命名方案", _selectedGroup.Name);
             if (!string.IsNullOrEmpty(newName) && !string.IsNullOrEmpty(newName.Trim()))
             {
                 _selectedGroup.Name = newName.Trim();
@@ -207,7 +207,7 @@ namespace CrosshairMaster.Views
         {
             if (_selectedGroup == null || _selectedGroup.Layers.Count == 0)
             {
-                MessageBox.Show("当前方案组中暂无准星图层！", "ScreenCrosshair", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("当前方案中没有图层", "ScreenCrosshair", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -238,7 +238,7 @@ namespace CrosshairMaster.Views
             }
             RefreshGroupList();
             _config.Save();
-            MessageBox.Show(string.Format("已将屏幕上的 {0} 个准星图层全部成功存入【{1}】！", _selectedGroup.Layers.Count, _selectedGroup.Name), "ScreenCrosshair", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(string.Format("已保存至方案「{0}」", _selectedGroup.Name), "ScreenCrosshair", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
     }
